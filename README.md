@@ -1,3 +1,7 @@
+# TS Express Starter
+
+This is a TypeScript-based Express.js starter project.
+
 ## Installation
 
 1. Clone the repository:
@@ -15,7 +19,15 @@
    yarn install
    ```
 
-3. Create a [.env](http://_vscodecontentref_/1) file based on [.env.example](http://_vscodecontentref_/2) and fill in the required environment variables.
+3. Install TypeScript and ts-node globally:
+
+   ```sh
+   npm install -g typescript ts-node
+   # or
+   yarn global add typescript ts-node
+   ```
+
+4. Create a [.env](http://_vscodecontentref_/5) file based on [.env.example](http://_vscodecontentref_/6) and fill in the required environment variables.
 
 ## Scripts
 
@@ -46,7 +58,3 @@
 - `mailgen`: Generates HTML and plain text email content.
 - `cors`: Middleware for enabling Cross-Origin Resource Sharing.
 - `nodemon`: Utility that monitors for any changes in your source and automatically restarts your server.
-
-## License
-
-This project is licensed under the MIT License.
