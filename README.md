@@ -7,35 +7,31 @@
    cd <repository-directory>
    ```
 
-2. Install dependencies:
+2. Install dependencies using npm or yarn:
 
    ```sh
    npm install
+   # or
+   yarn install
    ```
 
-3. Create a [.env](http://_vscodecontentref_/11) file based on [.env.example](http://_vscodecontentref_/12) and fill in the required environment variables.
+3. Create a [.env](http://_vscodecontentref_/1) file based on [.env.example](http://_vscodecontentref_/2) and fill in the required environment variables.
 
 ## Scripts
 
-- `npm run dev`: Start the development server with nodemon.
-- `npm run watch`: Watch for TypeScript file changes and compile.
+- `npm run dev` or `yarn dev`: Start the development server with nodemon.
+- `npm run watch` or `yarn watch`: Watch for TypeScript file changes and compile.
 
 ## Environment Variables
 
-- [PORT](http://_vscodecontentref_/13): Server port.
-- [DB_URI](http://_vscodecontentref_/14): MongoDB connection URI.
-- [JWT_SECRET_KEY](http://_vscodecontentref_/15): Secret key for JWT.
-- [email](http://_vscodecontentref_/16): Email address for sending emails.
-- [password](http://_vscodecontentref_/17): Password for the email account.
-- [cloud_name](http://_vscodecontentref_/18): Cloudinary cloud name.
-- [CLOUDINARY_API_SECRET_KEY](http://_vscodecontentref_/19): Cloudinary API secret key.
-- [CLOUDINARY_API_KEY](http://_vscodecontentref_/20): Cloudinary API key.
-
-## Endpoints
-
-### Authentication
-
-- `POST /api/auth/sign-up`: Register a new user.
+- `PORT`: Server port.
+- `DB_URI`: MongoDB connection URI.
+- `JWT_SECRET_KEY`: Secret key for JWT.
+- `email`: Email address for sending emails.
+- `password`: Password for the email account.
+- `cloud_name`: Cloudinary cloud name.
+- `CLOUDINARY_API_SECRET_KEY`: Cloudinary API secret key.
+- `CLOUDINARY_API_KEY`: Cloudinary API key.
 
 ## License
 
