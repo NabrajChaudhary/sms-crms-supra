@@ -17,3 +17,5 @@ export const CLOUD_NAME = process.env.cloud_name;
 export const CLOUDINARY_API_SECRET_KEY = process.env.CLOUDINARY_API_SECRET_KEY;
 
 export const CLOUDINARY_API_KEY = process.env.CLOUDINARY_API_KEY;
+
+// export const { PORT = 8000 } = process.env;
