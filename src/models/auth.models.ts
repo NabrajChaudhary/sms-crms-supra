@@ -23,6 +23,12 @@ const AuthSchemaModel = new mongoose.Schema({
   avatar: {
     type: String,
   },
+  role: {
+    type: String,
+    enum: ["admin", "user"],
+    default: "admin",
+    required: true,
+  },
 });
 
 export const AuthSchema = mongoose.model("AuthSchema", AuthSchemaModel);

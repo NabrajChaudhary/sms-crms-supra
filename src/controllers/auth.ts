@@ -7,7 +7,11 @@ import { AuthSchema } from "../models/auth.models";
 import { SECRET_KEY } from "../config/constant";
 import { AuthRequest, UserType } from "../types/auth.types";
 
-export const signUp = async (req: Request, res: Response): Promise<void> => {
+export const signUp = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   const { first_name, last_name, email, password, contact_number } = req.body;
 
   try {
@@ -35,6 +39,7 @@ export const signUp = async (req: Request, res: Response): Promise<void> => {
 
     res.status(201).json({ message: "Admin has been created!" });
   } catch (error) {
+    next(error);
     res.status(500).json({ message: "Internal Error", error });
   }
 };
@@ -69,9 +74,14 @@ export const signIn = async (req: Request, res: Response): Promise<void> => {
     if (!SECRET_KEY) {
       throw new Error("SECRET_KEY is not defined");
     }
-    const token: string = jwt.sign({ id: existingUser._id }, SECRET_KEY, {
-      expiresIn: "48h",
-    }); // Added token expiration
+
+    const token: string = jwt.sign(
+      { id: existingUser._id, role: existingUser.role },
+      SECRET_KEY,
+      {
+        expiresIn: "48h",
+      }
+    ); // Added token expiration
 
     res.status(200).json({
       user: existingUser,
@@ -92,7 +102,6 @@ export const getProfile = async (
   next: NextFunction
 ): Promise<any> => {
   const userId = req.userId;
-  console.log("🚀 ~ userId:", userId);
 
   try {
     // Find the user by ID and exclude sensitive fields

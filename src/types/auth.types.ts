@@ -6,8 +6,10 @@ export type UserType = {
   _id: Types.ObjectId;
   email: string;
   password: string;
+  role: "admin" | "sup_admin" | "user";
 };
 
 export interface AuthRequest extends Request {
   userId?: JwtPayload;
+  role?: JwtPayload;
 }

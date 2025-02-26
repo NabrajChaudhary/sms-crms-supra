@@ -3,36 +3,27 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AuthSchema = void 0;
+exports.CourseSchema = void 0;
 const mongoose_1 = __importDefault(require("mongoose"));
-const AuthSchemaModel = new mongoose_1.default.Schema({
-    first_name: {
+const CourseSchemaModel = new mongoose_1.default.Schema({
+    course_name: {
         type: String,
         required: true,
     },
-    last_name: {
+    course_duration: {
         type: String,
         required: true,
     },
-    email: {
+    start_date: {
+        type: String,
+    },
+    course_slug: {
         type: String,
         required: true,
     },
-    password: {
-        type: String,
-        required: true,
-    },
-    contact_number: {
-        type: String,
-    },
-    avatar: {
-        type: String,
-    },
-    role: {
-        type: String,
-        enum: ["admin", "user"],
-        default: "admin",
-        required: true,
+    isActive: {
+        type: Boolean,
+        default: true,
     },
 });
-exports.AuthSchema = mongoose_1.default.model("AuthSchema", AuthSchemaModel);
+exports.CourseSchema = mongoose_1.default.model("CourseSchema", CourseSchemaModel);

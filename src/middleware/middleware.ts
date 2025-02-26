@@ -1,34 +1,68 @@
-import jwt, { JwtPayload, Secret } from "jsonwebtoken";
-import { SECRET_KEY } from "../config/constant";
+import { Secret } from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 import { NextFunction, Request, Response } from "express";
-import { AuthRequest } from "../types/auth.types";
+import { SECRET_KEY } from "../config/constant";
 
-const auth = (req: AuthRequest, res: Response, next: NextFunction): any => {
+interface AuthRequest extends Request {
+  userId?: string;
+  role?: string;
+}
+
+const extractToken = (authHeader: string | undefined): string | null => {
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return null;
+  }
+  return authHeader.split(" ")[1];
+};
+
+const verifyAndDecodeToken = (token: string): jwt.JwtPayload | null => {
   try {
-    const token = req.headers.authorization;
-    if (!token || !token.startsWith("Bearer")) {
-      // Unauthorized if token is missing or doesn't start with 'Bearer'
-      return res.status(401).json({ message: "Unauthorized User" });
-    }
-
-    // Verify and decode the token
-    const tokenWithoutBearer = token.split(" ")[1];
-
-    const decodedToken = jwt.verify(tokenWithoutBearer, SECRET_KEY as Secret);
-
-    if (!decodedToken) {
-      // Unauthorized if token cannot be verified
-      return res.status(401).json({ message: "Unauthorized User" });
-    }
-
-    // Store user ID in request object for future use
-    req.userId = (decodedToken as any).id;
-    next(); // Move to the next middleware/route handler
+    return jwt.verify(token, SECRET_KEY as Secret) as jwt.JwtPayload;
   } catch (error) {
-    console.error("Error in authentication middleware:", error);
-    // Unauthorized if any error occurs during token verification
-    return res.status(401).json({ message: "Unauthorized User" });
+    console.error("Token verification failed:", error);
+    return null;
   }
 };
 
-export default auth;
+const handleUnauthorized = (res: Response): Response => {
+  return res.status(401).json({ message: "Unauthorized User" });
+};
+
+export const auth = (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+): void => {
+  const token = extractToken(req.headers.authorization);
+
+  if (!token) {
+    handleUnauthorized(res);
+    return;
+  }
+
+  const decodedToken = verifyAndDecodeToken(token);
+
+  if (!decodedToken) {
+    handleUnauthorized(res);
+    return;
+  }
+
+  req.userId = decodedToken.id as string;
+  req.role = decodedToken.role as string;
+
+  next();
+};
+
+export const isSuperAdmin = (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+): void => {
+  auth(req, res, () => {
+    if (req.role !== "sup_admin") {
+      res.status(403).json({ message: "Permission Denied" });
+      return;
+    }
+    next();
+  });
+};
