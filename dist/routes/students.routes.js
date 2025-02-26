@@ -15,4 +15,4 @@ exports.studentRoute.delete("/delete/:id", students_1.deleteStudent);
 exports.studentRoute.get("/:id", students_1.getStudentById);
 exports.studentRoute.put("/restore/:id", students_1.restoreStudent);
 exports.studentRoute.put("/remove/:id", students_1.removeStudent);
-exports.studentRoute.get("/archived/all", students_1.getArchivedStudents);
+exports.studentRoute.get("/archived/all", middleware_1.auth, middleware_1.isSuperAdmin, students_1.getArchivedStudents);

@@ -176,23 +176,6 @@ const restoreStudent = (req, res) => __awaiter(void 0, void 0, void 0, function*
     }
 });
 exports.restoreStudent = restoreStudent;
-// export const deleteStudent = async (
-//   req: Request,
-//   res: Response
-// ): Promise<void> => {
-//   const { id } = req.params;
-//   try {
-//     const deleteStudentData = await StudentSchema.deleteOne({ _id: id });
-//     if (deleteStudentData.deletedCount === 0) {
-//       res.status(404).json({ error: "Student not found or unauthorized" });
-//     }
-//     res.status(200).json({ message: "Stduent has been deleted !" });
-//   } catch (error) {
-//     res.status(500).json({
-//       error: "An error occurred while removing student data",
-//     });
-//   }
-// };
 const deleteStudent = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { id } = req.params;
     try {

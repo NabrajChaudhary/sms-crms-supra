@@ -9,7 +9,7 @@ import {
   restoreStudent,
   updateStudent,
 } from "../controllers/students";
-import { auth } from "../middleware/middleware";
+import { auth, isSuperAdmin } from "../middleware/middleware";
 
 export const studentRoute = express.Router();
 
@@ -20,4 +20,4 @@ studentRoute.delete("/delete/:id", deleteStudent);
 studentRoute.get("/:id", getStudentById);
 studentRoute.put("/restore/:id", restoreStudent);
 studentRoute.put("/remove/:id", removeStudent);
-studentRoute.get("/archived/all", getArchivedStudents);
+studentRoute.get("/archived/all", auth, isSuperAdmin, getArchivedStudents);
