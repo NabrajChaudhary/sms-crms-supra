@@ -1,11 +1,12 @@
 {
-  "name": "ts-express-starter",
+  "name": "system-api",
   "version": "1.0.0",
   "main": "src/app.ts",
   "author": "Nabraj Chaudhary",
   "license": "MIT",
   "scripts": {
     "dev": "nodemon ./dist/app.js",
+    "start": "node ./dist/app.js",
     "watch": "tsc -w"
   },
   "devDependencies": {
