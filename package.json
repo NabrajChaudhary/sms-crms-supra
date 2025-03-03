@@ -1,5 +1,5 @@
 {
-  "name": "ts-express-starter",
+  "name": "system-api",
   "version": "1.0.0",
   "main": "src/app.ts",
   "author": "Nabraj Chaudhary",
