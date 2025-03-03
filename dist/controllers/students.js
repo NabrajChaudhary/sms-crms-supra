@@ -80,8 +80,17 @@ const createStudent = (req, res, next) => __awaiter(void 0, void 0, void 0, func
 exports.createStudent = createStudent;
 const getAllStudents = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
+        const page = parseInt(req.query.page) || 1; // Default to page 1
+        const limit = parseInt(req.query.limit) || 10; // Default to 10 records per page
+        const skip = (page - 1) * limit; // Calculate the number of documents to skip
+        // Fetch total students count for pagination metadata
+        const totalCount = yield students_models_1.StudentSchema.countDocuments({
+            isArchived: false,
+        });
         const studentData = yield students_models_1.StudentSchema.find({ isArchived: false })
             .sort({ first_name: 1 })
+            .skip(skip)
+            .limit(limit)
             .select("-__v")
             .populate([
             {
@@ -94,11 +103,16 @@ const getAllStudents = (req, res) => __awaiter(void 0, void 0, void 0, function*
             },
         ]);
         if (!studentData) {
-            res.status(404).json({ message: "Student data not found!" });
+            res.status(404).json({ message: "No students found!" });
+            return;
         }
-        res
-            .status(200)
-            .json({ data: studentData, message: "Students has been fetched" });
+        res.status(200).json({
+            data: studentData,
+            currentPage: page,
+            totalPages: Math.ceil(totalCount / limit),
+            total: totalCount,
+            message: "Students have been fetched",
+        });
     }
     catch (error) {
         res.status(500).json({
@@ -233,6 +247,13 @@ const getStudentById = (req, res) => __awaiter(void 0, void 0, void 0, function*
 exports.getStudentById = getStudentById;
 const getArchivedStudents = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
+        const page = parseInt(req.query.page) || 1; // Default to page 1
+        const limit = parseInt(req.query.limit) || 10; // Default to 10 records per page
+        const skip = (page - 1) * limit; // Calculate the number of documents to skip
+        // Fetch total students count for pagination metadata
+        const totalCount = yield students_models_1.StudentSchema.countDocuments({
+            isArchived: true,
+        });
         const studentData = yield students_models_1.StudentSchema.find({ isArchived: true })
             .sort({ first_name: 1 })
             .select("-__v")
@@ -249,9 +270,13 @@ const getArchivedStudents = (req, res) => __awaiter(void 0, void 0, void 0, func
         if (!studentData) {
             res.status(404).json({ message: "Student data not found!" });
         }
-        res
-            .status(200)
-            .json({ data: studentData, message: "Students has been fetched" });
+        res.status(200).json({
+            data: studentData,
+            currentPage: page,
+            totalPages: Math.ceil(totalCount / limit),
+            total: totalCount,
+            message: "Students has been fetched",
+        });
     }
     catch (error) {
         res.status(500).json({

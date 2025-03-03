@@ -6,6 +6,7 @@ import { dbConnection } from "./config/dbConnection";
 import { authRoute } from "./routes/auth.routes";
 import { studentRoute } from "./routes/students.routes";
 import { courseRoute } from "./routes/course.routes";
+import { PaymentRoute } from "./routes/payments.routes";
 
 dotenv.config();
 
@@ -22,6 +23,7 @@ app.use((req, res, next) => {
 app.use("/api/auth/", authRoute);
 app.use("/api/student", studentRoute);
 app.use("/api/course", courseRoute);
+app.use("/api/payment", PaymentRoute);
 
 dbConnection();
 

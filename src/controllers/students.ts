@@ -95,8 +95,19 @@ export const getAllStudents = async (
   res: Response
 ): Promise<void> => {
   try {
+    const page = parseInt(req.query.page as string) || 1; // Default to page 1
+    const limit = parseInt(req.query.limit as string) || 10; // Default to 10 records per page
+    const skip = (page - 1) * limit; // Calculate the number of documents to skip
+
+    // Fetch total students count for pagination metadata
+    const totalCount = await StudentSchema.countDocuments({
+      isArchived: false,
+    });
+
     const studentData = await StudentSchema.find({ isArchived: false })
       .sort({ first_name: 1 })
+      .skip(skip)
+      .limit(limit)
       .select("-__v")
       .populate([
         {
@@ -110,12 +121,17 @@ export const getAllStudents = async (
       ]);
 
     if (!studentData) {
-      res.status(404).json({ message: "Student data not found!" });
+      res.status(404).json({ message: "No students found!" });
+      return;
     }
 
-    res
-      .status(200)
-      .json({ data: studentData, message: "Students has been fetched" });
+    res.status(200).json({
+      data: studentData,
+      currentPage: page,
+      totalPages: Math.ceil(totalCount / limit),
+      total: totalCount,
+      message: "Students have been fetched",
+    });
   } catch (error) {
     res.status(500).json({
       error: "An error occurred while fetching student data",
@@ -289,6 +305,15 @@ export const getArchivedStudents = async (
   res: Response
 ): Promise<void> => {
   try {
+    const page = parseInt(req.query.page as string) || 1; // Default to page 1
+    const limit = parseInt(req.query.limit as string) || 10; // Default to 10 records per page
+    const skip = (page - 1) * limit; // Calculate the number of documents to skip
+
+    // Fetch total students count for pagination metadata
+    const totalCount = await StudentSchema.countDocuments({
+      isArchived: true,
+    });
+
     const studentData = await StudentSchema.find({ isArchived: true })
       .sort({ first_name: 1 })
       .select("-__v")
@@ -307,9 +332,13 @@ export const getArchivedStudents = async (
       res.status(404).json({ message: "Student data not found!" });
     }
 
-    res
-      .status(200)
-      .json({ data: studentData, message: "Students has been fetched" });
+    res.status(200).json({
+      data: studentData,
+      currentPage: page,
+      totalPages: Math.ceil(totalCount / limit),
+      total: totalCount,
+      message: "Students has been fetched",
+    });
   } catch (error) {
     res.status(500).json({
       error: "An error occurred while fetching student data",

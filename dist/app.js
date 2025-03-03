@@ -11,6 +11,7 @@ const dbConnection_1 = require("./config/dbConnection");
 const auth_routes_1 = require("./routes/auth.routes");
 const students_routes_1 = require("./routes/students.routes");
 const course_routes_1 = require("./routes/course.routes");
+const payments_routes_1 = require("./routes/payments.routes");
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 app.use(express_1.default.json());
@@ -21,5 +22,6 @@ app.use((req, res, next) => {
 app.use("/api/auth/", auth_routes_1.authRoute);
 app.use("/api/student", students_routes_1.studentRoute);
 app.use("/api/course", course_routes_1.courseRoute);
+app.use("/api/payment", payments_routes_1.PaymentRoute);
 (0, dbConnection_1.dbConnection)();
 app.listen(constant_1.PORT, () => console.log(`Server is running on port ${constant_1.PORT}`));

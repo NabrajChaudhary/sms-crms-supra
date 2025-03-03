@@ -68,13 +68,22 @@ const deleteCourse = (req, res) => __awaiter(void 0, void 0, void 0, function* (
 exports.deleteCourse = deleteCourse;
 const getAllCourse = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
+        const page = parseInt(req.query.page) || 1; // Default to page 1
+        const limit = parseInt(req.query.limit) || 10; // Default to 10 records per page
+        const skip = (page - 1) * limit; // Calculate the number of documents to skip
+        // Fetch total students count for pagination metadata
+        const totalCount = yield courses_model_1.CourseSchema.countDocuments({});
         const coursesData = yield courses_model_1.CourseSchema.find({}).select("-__v");
         if (!coursesData) {
             res.status(404).json({ message: "Courses data not found!" });
         }
-        res
-            .status(200)
-            .json({ data: coursesData, message: "Courses has been fetched" });
+        res.status(200).json({
+            data: coursesData,
+            currentPage: page,
+            totalPages: Math.ceil(totalCount / limit),
+            total: totalCount,
+            message: "Courses has been fetched",
+        });
     }
     catch (error) {
         res.status(500).json({
@@ -137,15 +146,24 @@ const activeCourse = (req, res) => __awaiter(void 0, void 0, void 0, function* (
 exports.activeCourse = activeCourse;
 const allActiveCourse = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
+        const page = parseInt(req.query.page) || 1; // Default to page 1
+        const limit = parseInt(req.query.limit) || 10; // Default to 10 records per page
+        const skip = (page - 1) * limit; // Calculate the number of documents to skip
+        // Fetch total students count for pagination metadata
+        const totalCount = yield courses_model_1.CourseSchema.countDocuments({ isActive: true });
         const courseData = yield courses_model_1.CourseSchema.find({ isActive: true })
             .sort({ first_name: 1 })
             .select("-__v");
         if (!courseData) {
             res.status(404).json({ message: "Courses not found!" });
         }
-        res
-            .status(200)
-            .json({ data: courseData, message: "Courses has been fetched" });
+        res.status(200).json({
+            data: courseData,
+            currentPage: page,
+            totalPages: Math.ceil(totalCount / limit),
+            total: totalCount,
+            message: "Courses has been fetched",
+        });
     }
     catch (error) {
         res.status(500).json({
