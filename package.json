@@ -6,6 +6,7 @@
   "license": "MIT",
   "scripts": {
     "dev": "nodemon ./dist/app.js",
+    "start": "node ./dist/app.js",
     "watch": "tsc -w"
   },
   "devDependencies": {
