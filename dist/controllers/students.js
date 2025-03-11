@@ -27,7 +27,7 @@ const createStudent = (req, res, next) => __awaiter(void 0, void 0, void 0, func
             else if (err) {
                 return res.status(500).json({ message: "Internal server error" });
             }
-            const { first_name, last_name, address, course, guardain_name, emergency_contact_number, emergency_contact_name, date_of_enroll, email, contact_number, gender, date_of_birth, } = req.body;
+            const { first_name, last_name, address, course, guardain_name, emergency_contact_number, emergency_contact_name, date_of_enroll, email, contact_number, gender, date_of_birth, refered_by, } = req.body;
             const imagePath = req.file ? req.file.path : "";
             const upload = yield (0, cloudinary_1.default)(imagePath);
             if (!first_name ||
@@ -67,6 +67,7 @@ const createStudent = (req, res, next) => __awaiter(void 0, void 0, void 0, func
                 entry_by: userId,
                 gender,
                 date_of_birth,
+                refered_by,
                 image: upload === null || upload === void 0 ? void 0 : upload.secure_url,
             }).save();
             res.status(201).json({ message: "Student has been added!" });

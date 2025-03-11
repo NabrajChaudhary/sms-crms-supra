@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { CourseSchema } from "../models/courses.model";
+import { revalidationTag } from "../utils/revalidate";
 
 export const createCourse = async (
   req: Request,
@@ -27,6 +28,9 @@ export const createCourse = async (
       course_duration,
       start_date,
     }).save();
+
+    await revalidationTag("course");
+
     res.status(201).json({ message: "Course has been added!" });
   } catch (error) {
     res.status(500).json({ message: "Internal Error", error });
@@ -61,6 +65,7 @@ export const deleteCourse = async (
       return;
     }
     res.status(200).json({ message: "Course has been deleted" });
+    await revalidationTag("course");
   } catch (error) {
     res.status(500).json({
       error: "An error occurred while deleting student data",
@@ -139,6 +144,13 @@ export const deactiveCourse = async (
     } else {
       res.status(200).json({ message: result.message });
     }
+
+    // await Promise.all([
+    //   revalidationTag("courses"),
+    //   revalidationTag(`courses-${id}`),
+    // ]);
+
+    await revalidationTag("course");
   } catch (error) {
     res.status(500).json({
       error: "An error occurred while removing student data",
@@ -159,6 +171,7 @@ export const activeCourse = async (
     } else {
       res.status(200).json({ message: result.message });
     }
+    await revalidationTag("course");
   } catch (error) {
     res.status(500).json({
       error: "An error occurred while removing student data",

@@ -11,6 +11,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.allActiveCourse = exports.activeCourse = exports.deactiveCourse = exports.getAllCourse = exports.deleteCourse = exports.createCourse = void 0;
 const courses_model_1 = require("../models/courses.model");
+const revalidate_1 = require("../utils/revalidate");
 const createCourse = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { course_name, start_date, course_duration, course_slug } = req.body;
     try {
@@ -31,6 +32,7 @@ const createCourse = (req, res) => __awaiter(void 0, void 0, void 0, function* (
             course_duration,
             start_date,
         }).save();
+        yield (0, revalidate_1.revalidationTag)("course");
         res.status(201).json({ message: "Course has been added!" });
     }
     catch (error) {
@@ -58,6 +60,7 @@ const deleteCourse = (req, res) => __awaiter(void 0, void 0, void 0, function* (
             return;
         }
         res.status(200).json({ message: "Course has been deleted" });
+        yield (0, revalidate_1.revalidationTag)("course");
     }
     catch (error) {
         res.status(500).json({
@@ -118,6 +121,11 @@ const deactiveCourse = (req, res) => __awaiter(void 0, void 0, void 0, function*
         else {
             res.status(200).json({ message: result.message });
         }
+        // await Promise.all([
+        //   revalidationTag("courses"),
+        //   revalidationTag(`courses-${id}`),
+        // ]);
+        yield (0, revalidate_1.revalidationTag)("course");
     }
     catch (error) {
         res.status(500).json({
@@ -136,6 +144,7 @@ const activeCourse = (req, res) => __awaiter(void 0, void 0, void 0, function* (
         else {
             res.status(200).json({ message: result.message });
         }
+        yield (0, revalidate_1.revalidationTag)("course");
     }
     catch (error) {
         res.status(500).json({

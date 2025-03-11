@@ -32,6 +32,7 @@ export const createStudent = async (
         contact_number,
         gender,
         date_of_birth,
+        refered_by,
       } = req.body;
 
       const imagePath = req.file ? req.file.path : "";
@@ -80,6 +81,7 @@ export const createStudent = async (
         entry_by: userId,
         gender,
         date_of_birth,
+        refered_by,
         image: upload?.secure_url,
       }).save();
       res.status(201).json({ message: "Student has been added!" });

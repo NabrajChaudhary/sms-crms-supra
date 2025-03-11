@@ -18,4 +18,9 @@ export const CLOUDINARY_API_SECRET_KEY = process.env.CLOUDINARY_API_SECRET_KEY;
 
 export const CLOUDINARY_API_KEY = process.env.CLOUDINARY_API_KEY;
 
+export const REVALIDATION_HASH_KEY =
+  process.env.REVALIDATION_HASH_KEY || "b1xlAOba36mH0EXOsss";
+
+export const NEXT_JS_URL = process.env.NEXT_JS_URL || "http://localhost:3000";
+
 // export const { PORT = 8000 } = process.env;

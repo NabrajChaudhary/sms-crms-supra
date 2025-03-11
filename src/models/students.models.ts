@@ -66,6 +66,9 @@ const StudentSchemaModel = new mongoose.Schema(
     image: {
       type: String,
     },
+    refered_by: {
+      type: String,
+    },
     isArchived: {
       type: Boolean,
       default: false,
