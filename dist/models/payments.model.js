@@ -19,7 +19,10 @@ const PaymentSchemaModel = new mongoose_1.default.Schema({
     purpose: {
         type: String,
         required: true,
-        enum: ["admission", "due", "installment", "others"], // Restricting fee purpose
+        enum: ["Admission", "Fees Installment", "Others"], // Restricting fee purpose
+    },
+    note: {
+        type: String,
     },
     remarks: {
         type: String,

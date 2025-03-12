@@ -17,6 +17,7 @@ const students_models_1 = require("../models/students.models");
 const upload_1 = __importDefault(require("../utils/upload"));
 const multer_1 = __importDefault(require("multer"));
 const cloudinary_1 = __importDefault(require("../utils/cloudinary"));
+const revalidate_1 = require("../utils/revalidate");
 const createStudent = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const userId = req.userId;
     try {
@@ -40,8 +41,7 @@ const createStudent = (req, res, next) => __awaiter(void 0, void 0, void 0, func
                 !emergency_contact_name ||
                 !emergency_contact_number ||
                 !date_of_birth ||
-                !gender ||
-                !imagePath) {
+                !gender) {
                 res.status(400).json({ message: "Missing required fields" });
                 return;
             }
@@ -70,6 +70,7 @@ const createStudent = (req, res, next) => __awaiter(void 0, void 0, void 0, func
                 refered_by,
                 image: upload === null || upload === void 0 ? void 0 : upload.secure_url,
             }).save();
+            yield (0, revalidate_1.revalidationTag)("student");
             res.status(201).json({ message: "Student has been added!" });
         }));
     }

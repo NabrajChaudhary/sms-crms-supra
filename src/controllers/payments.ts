@@ -1,5 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { PaymentSchema } from "../models/payments.model";
+import { StudentSchema } from "../models/students.models";
+import { revalidationTag } from "../utils/revalidate";
 
 export const addPayment = async (
   req: Request,
@@ -21,7 +23,9 @@ export const addPayment = async (
       student: id,
     }).save();
 
-    res.status(400).json({ message: "Payment has been added" });
+    await revalidationTag("payment");
+
+    res.status(200).json({ message: "Payment has been added" });
   } catch (error) {
     res.status(500).json({ message: "Internal Error", error });
   }
@@ -42,10 +46,16 @@ export const getPaymentsByStudentId = async (
 
     const payments = await PaymentSchema.find({ student: id })
       .select("-__v") // Exclude `__v` field
-      .populate({
-        path: "student",
-        select: "first_name last_name email contact_number",
-      });
+      .populate([
+        {
+          path: "student",
+          select: "first_name last_name email contact_number",
+        },
+        // {
+        //   path: "course",
+        //   select: "course_name course_duration start_date",
+        // },
+      ]);
 
     if (!payments || payments.length === 0) {
       res.status(404).json({ message: "No payments found for this student!" });
@@ -86,6 +96,10 @@ export const getAllPayments = async (
           path: "student",
           select: "first_name last_name email contact_number",
         },
+        // {
+        //   path: "course",
+        //   select: "course_name course_duration start_date",
+        // },
       ]);
 
     if (!paymentData) {

@@ -4,6 +4,7 @@ import { AuthRequest } from "../types/auth.types";
 import upload from "../utils/upload";
 import multer from "multer";
 import urlUpload from "../utils/cloudinary";
+import { revalidationTag } from "../utils/revalidate";
 
 export const createStudent = async (
   req: AuthRequest,
@@ -50,8 +51,7 @@ export const createStudent = async (
         !emergency_contact_name ||
         !emergency_contact_number ||
         !date_of_birth ||
-        !gender ||
-        !imagePath
+        !gender
       ) {
         res.status(400).json({ message: "Missing required fields" });
         return;
@@ -84,6 +84,8 @@ export const createStudent = async (
         refered_by,
         image: upload?.secure_url,
       }).save();
+
+      await revalidationTag("student");
       res.status(201).json({ message: "Student has been added!" });
     });
   } catch (error) {

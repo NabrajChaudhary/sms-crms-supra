@@ -11,6 +11,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getAllPayments = exports.getPaymentsByStudentId = exports.addPayment = void 0;
 const payments_model_1 = require("../models/payments.model");
+const revalidate_1 = require("../utils/revalidate");
 const addPayment = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { id } = req.params;
     const { amount, purpose, remarks } = req.body;
@@ -25,7 +26,8 @@ const addPayment = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
             remarks,
             student: id,
         }).save();
-        res.status(400).json({ message: "Payment has been added" });
+        yield (0, revalidate_1.revalidationTag)("payment");
+        res.status(200).json({ message: "Payment has been added" });
     }
     catch (error) {
         res.status(500).json({ message: "Internal Error", error });
@@ -41,10 +43,16 @@ const getPaymentsByStudentId = (req, res) => __awaiter(void 0, void 0, void 0, f
         const totalCount = yield payments_model_1.PaymentSchema.countDocuments({ student: id });
         const payments = yield payments_model_1.PaymentSchema.find({ student: id })
             .select("-__v") // Exclude `__v` field
-            .populate({
-            path: "student",
-            select: "first_name last_name email contact_number",
-        });
+            .populate([
+            {
+                path: "student",
+                select: "first_name last_name email contact_number",
+            },
+            // {
+            //   path: "course",
+            //   select: "course_name course_duration start_date",
+            // },
+        ]);
         if (!payments || payments.length === 0) {
             res.status(404).json({ message: "No payments found for this student!" });
             return;
@@ -80,6 +88,10 @@ const getAllPayments = (req, res) => __awaiter(void 0, void 0, void 0, function*
                 path: "student",
                 select: "first_name last_name email contact_number",
             },
+            // {
+            //   path: "course",
+            //   select: "course_name course_duration start_date",
+            // },
         ]);
         if (!paymentData) {
             res.status(404).json({ message: "data not found!" });
