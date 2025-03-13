@@ -110,8 +110,6 @@ export const getAllStudents = async (
 
     const studentData = await StudentSchema.find({ isArchived: false })
       .sort({ first_name: 1 })
-      .skip(skip)
-      .limit(limit)
       .select("-__v")
       .populate([
         {
@@ -134,6 +132,7 @@ export const getAllStudents = async (
       currentPage: page,
       totalPages: Math.ceil(totalCount / limit),
       total: totalCount,
+      skip: skip,
       message: "Students have been fetched",
     });
   } catch (error) {

@@ -12,6 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.allActiveCourse = exports.activeCourse = exports.deactiveCourse = exports.getAllCourse = exports.deleteCourse = exports.createCourse = void 0;
 const courses_model_1 = require("../models/courses.model");
 const revalidate_1 = require("../utils/revalidate");
+const students_models_1 = require("../models/students.models");
 const createCourse = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { course_name, start_date, course_duration, course_slug } = req.body;
     try {
@@ -54,6 +55,19 @@ const deleteCourse = (req, res) => __awaiter(void 0, void 0, void 0, function* (
                 .json({ error: "Course must be deactivated before deletion" });
             return;
         }
+        // Check if any students are associated with this course
+        // Since course is an embedded object, we need to check course._id
+        const studentsWithCourse = yield students_models_1.StudentSchema.countDocuments({
+            course: id,
+        });
+        if (studentsWithCourse > 0) {
+            res.status(400).json({
+                error: "Cannot delete course because it has associated students",
+                studentsCount: studentsWithCourse,
+                message: "You must reassign or remove these students from the course before deletion",
+            });
+            return;
+        }
         const deleteCourse = yield courses_model_1.CourseSchema.deleteOne({ _id: id });
         if (deleteCourse.deletedCount === 0) {
             res.status(500).json({ error: "Failed to delete Course" });
@@ -64,7 +78,8 @@ const deleteCourse = (req, res) => __awaiter(void 0, void 0, void 0, function* (
     }
     catch (error) {
         res.status(500).json({
-            error: "An error occurred while deleting student data",
+            error: "An error occurred while deleting course data",
+            details: error instanceof Error ? error.message : String(error),
         });
     }
 });
@@ -85,6 +100,7 @@ const getAllCourse = (req, res) => __awaiter(void 0, void 0, void 0, function* (
             currentPage: page,
             totalPages: Math.ceil(totalCount / limit),
             total: totalCount,
+            skip: skip,
             message: "Courses has been fetched",
         });
     }
@@ -115,6 +131,7 @@ const deactiveCourse = (req, res) => __awaiter(void 0, void 0, void 0, function*
     const { id } = req.params;
     try {
         const result = yield updateCourseActiveStatus(id, false);
+        // const associatedStudent = await StudentSchema.findById({})
         if (!result.success) {
             res.status(400).json({ error: result.message });
         }

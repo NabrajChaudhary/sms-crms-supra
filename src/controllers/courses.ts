@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { CourseSchema } from "../models/courses.model";
 import { revalidationTag } from "../utils/revalidate";
+import { StudentSchema } from "../models/students.models";
 
 export const createCourse = async (
   req: Request,
@@ -58,6 +59,22 @@ export const deleteCourse = async (
       return;
     }
 
+    // Check if any students are associated with this course
+    // Since course is an embedded object, we need to check course._id
+    const studentsWithCourse = await StudentSchema.countDocuments({
+      course: id,
+    });
+
+    if (studentsWithCourse > 0) {
+      res.status(400).json({
+        error: "Cannot delete course because it has associated students",
+        studentsCount: studentsWithCourse,
+        message:
+          "You must reassign or remove these students from the course before deletion",
+      });
+      return;
+    }
+
     const deleteCourse = await CourseSchema.deleteOne({ _id: id });
 
     if (deleteCourse.deletedCount === 0) {
@@ -68,7 +85,8 @@ export const deleteCourse = async (
     await revalidationTag("course");
   } catch (error) {
     res.status(500).json({
-      error: "An error occurred while deleting student data",
+      error: "An error occurred while deleting course data",
+      details: error instanceof Error ? error.message : String(error),
     });
   }
 };
@@ -94,6 +112,7 @@ export const getAllCourse = async (
       currentPage: page,
       totalPages: Math.ceil(totalCount / limit),
       total: totalCount,
+      skip: skip,
       message: "Courses has been fetched",
     });
   } catch (error) {
@@ -138,6 +157,8 @@ export const deactiveCourse = async (
 
   try {
     const result = await updateCourseActiveStatus(id, false);
+
+    // const associatedStudent = await StudentSchema.findById({})
 
     if (!result.success) {
       res.status(400).json({ error: result.message });

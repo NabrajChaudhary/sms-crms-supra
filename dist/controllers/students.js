@@ -91,8 +91,6 @@ const getAllStudents = (req, res) => __awaiter(void 0, void 0, void 0, function*
         });
         const studentData = yield students_models_1.StudentSchema.find({ isArchived: false })
             .sort({ first_name: 1 })
-            .skip(skip)
-            .limit(limit)
             .select("-__v")
             .populate([
             {
@@ -113,6 +111,7 @@ const getAllStudents = (req, res) => __awaiter(void 0, void 0, void 0, function*
             currentPage: page,
             totalPages: Math.ceil(totalCount / limit),
             total: totalCount,
+            skip: skip,
             message: "Students have been fetched",
         });
     }

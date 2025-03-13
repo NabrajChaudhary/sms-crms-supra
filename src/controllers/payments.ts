@@ -8,7 +8,7 @@ export const addPayment = async (
   res: Response
 ): Promise<void> => {
   const { id } = req.params;
-  const { amount, purpose, remarks } = req.body;
+  const { amount, purpose, remarks, note } = req.body;
 
   try {
     if (!amount || !purpose || !remarks) {
@@ -20,6 +20,7 @@ export const addPayment = async (
       amount,
       purpose,
       remarks,
+      note,
       student: id,
     }).save();
 
@@ -59,6 +60,7 @@ export const getPaymentsByStudentId = async (
       currentPage: page,
       totalPages: Math.ceil(totalCount / limit),
       total: totalCount,
+      skip: skip,
       message:
         payments.length > 0
           ? "Payment records fetched successfully!"
@@ -83,8 +85,6 @@ export const getAllPayments = async (
 
     const totalCount = await PaymentSchema.countDocuments({});
     const paymentData = await PaymentSchema.find({})
-      .skip(skip)
-      .limit(limit)
       .select("-__v")
       .populate([
         {
@@ -106,6 +106,7 @@ export const getAllPayments = async (
       currentPage: page,
       totalPages: Math.ceil(totalCount / limit),
       total: totalCount,
+      skip: skip,
       message: "payment data has been fetched",
     });
   } catch (error) {

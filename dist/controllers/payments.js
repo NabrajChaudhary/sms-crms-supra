@@ -14,7 +14,7 @@ const payments_model_1 = require("../models/payments.model");
 const revalidate_1 = require("../utils/revalidate");
 const addPayment = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { id } = req.params;
-    const { amount, purpose, remarks } = req.body;
+    const { amount, purpose, remarks, note } = req.body;
     try {
         if (!amount || !purpose || !remarks) {
             res.status(400).json({ message: " Missing required field!" });
@@ -24,6 +24,7 @@ const addPayment = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
             amount,
             purpose,
             remarks,
+            note,
             student: id,
         }).save();
         yield (0, revalidate_1.revalidationTag)("payment");
@@ -55,6 +56,7 @@ const getPaymentsByStudentId = (req, res) => __awaiter(void 0, void 0, void 0, f
             currentPage: page,
             totalPages: Math.ceil(totalCount / limit),
             total: totalCount,
+            skip: skip,
             message: payments.length > 0
                 ? "Payment records fetched successfully!"
                 : "No payments found for this student.",
@@ -75,8 +77,6 @@ const getAllPayments = (req, res) => __awaiter(void 0, void 0, void 0, function*
         const skip = (page - 1) * limit; // Calculate the number of documents to skip
         const totalCount = yield payments_model_1.PaymentSchema.countDocuments({});
         const paymentData = yield payments_model_1.PaymentSchema.find({})
-            .skip(skip)
-            .limit(limit)
             .select("-__v")
             .populate([
             {
@@ -96,6 +96,7 @@ const getAllPayments = (req, res) => __awaiter(void 0, void 0, void 0, function*
             currentPage: page,
             totalPages: Math.ceil(totalCount / limit),
             total: totalCount,
+            skip: skip,
             message: "payment data has been fetched",
         });
     }
