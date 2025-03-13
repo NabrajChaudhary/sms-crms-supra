@@ -38,8 +38,8 @@ export const getPaymentsByStudentId = async (
   const { id } = req.params; // Extract student ID from request parameters
 
   try {
-    const page = parseInt(req.query.page as string) || 1; // Default to page 1
-    const limit = parseInt(req.query.limit as string) || 10; // Default to 10 records per page
+    const page = Number.parseInt(req.query.page as string) || 1; // Default to page 1
+    const limit = Number.parseInt(req.query.limit as string) || 10; // Default to 10 records per page
     const skip = (page - 1) * limit; // Calculate the number of documents to skip
 
     const totalCount = await PaymentSchema.countDocuments({ student: id });
@@ -51,23 +51,18 @@ export const getPaymentsByStudentId = async (
           path: "student",
           select: "first_name last_name email contact_number",
         },
-        // {
-        //   path: "course",
-        //   select: "course_name course_duration start_date",
-        // },
       ]);
 
-    if (!payments || payments.length === 0) {
-      res.status(404).json({ message: "No payments found for this student!" });
-      return;
-    }
-
+    // Always return a successful response, with an empty array if no payments found
     res.status(200).json({
-      data: payments,
+      data: payments || [], // Ensure we always return an array, even if empty
       currentPage: page,
       totalPages: Math.ceil(totalCount / limit),
       total: totalCount,
-      message: "Payment records fetched successfully!",
+      message:
+        payments.length > 0
+          ? "Payment records fetched successfully!"
+          : "No payments found for this student.",
     });
   } catch (error) {
     res.status(500).json({
