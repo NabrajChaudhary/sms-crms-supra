@@ -15,7 +15,7 @@ export const studentRoute = express.Router();
 
 studentRoute.post("/create", auth, createStudent);
 studentRoute.get("/", getAllStudents);
-studentRoute.put("/update/:id", updateStudent);
+studentRoute.put("/update/:id", auth, updateStudent);
 studentRoute.delete("/delete/:id", deleteStudent);
 studentRoute.get("/:id", getStudentById);
 studentRoute.put("/restore/:id", restoreStudent);

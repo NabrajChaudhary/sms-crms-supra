@@ -20,7 +20,7 @@ const StudentSchemaModel = new mongoose_1.default.Schema({
         required: true,
     },
     date_of_birth: {
-        type: Date,
+        type: String,
         required: true,
         // validate: {
         //   validator: function (value: Date) {

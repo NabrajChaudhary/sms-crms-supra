@@ -12,12 +12,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getArchivedStudents = exports.getStudentById = exports.deleteStudent = exports.restoreStudent = exports.removeStudent = exports.updateStudent = exports.getAllStudents = exports.createStudent = void 0;
+exports.getArchivedStudents = exports.getStudentById = exports.deleteStudent = exports.restoreStudent = exports.removeStudent = exports.getAllStudents = exports.updateStudent = exports.createStudent = void 0;
 const students_models_1 = require("../models/students.models");
 const upload_1 = __importDefault(require("../utils/upload"));
 const multer_1 = __importDefault(require("multer"));
 const cloudinary_1 = __importDefault(require("../utils/cloudinary"));
 const revalidate_1 = require("../utils/revalidate");
+const payments_model_1 = require("../models/payments.model");
+const mongoose_1 = require("mongoose");
 const createStudent = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const userId = req.userId;
     try {
@@ -80,6 +82,184 @@ const createStudent = (req, res, next) => __awaiter(void 0, void 0, void 0, func
     }
 });
 exports.createStudent = createStudent;
+const updateStudent = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    const userId = req.userId;
+    const { id } = req.params;
+    try {
+        // Check if the ID is valid
+        if (!mongoose_1.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({ message: "Invalid student ID format" });
+        }
+        // Create a new ObjectId from the id string instead of reassigning
+        const studentObjectId = new mongoose_1.Types.ObjectId(id);
+        // Wrap multer file upload in a Promise for handling file
+        yield new Promise((resolve, reject) => {
+            upload_1.default.single("image")(req, res, (err) => {
+                if (err) {
+                    if (err instanceof multer_1.default.MulterError) {
+                        reject(new Error(`File upload error: ${err.message}`));
+                    }
+                    else {
+                        reject(new Error(`Internal server error: ${err.message}`));
+                    }
+                }
+                else {
+                    resolve();
+                }
+            });
+        });
+        // Extract and prepare updated student data
+        const { first_name, last_name, address, course, guardain_name, emergency_contact_number, emergency_contact_name, date_of_enroll, email, contact_number, gender, date_of_birth, refered_by, } = req.body;
+        const updatedData = {
+            first_name,
+            last_name,
+            address,
+            course,
+            guardain_name,
+            emergency_contact_number,
+            emergency_contact_name,
+            date_of_enroll,
+            email,
+            contact_number,
+            gender,
+            date_of_birth,
+            refered_by: refered_by || "",
+            entry_by: userId, // Ensuring userId is included
+        };
+        // Handle image upload
+        if (req.file) {
+            const imagePath = req.file.path;
+            const upload = yield (0, cloudinary_1.default)(imagePath);
+            updatedData.image = upload === null || upload === void 0 ? void 0 : upload.secure_url; // Update image if a new one is uploaded
+        }
+        // Update student in the database using the ObjectId
+        const updatedStudent = yield students_models_1.StudentSchema.findByIdAndUpdate(studentObjectId, updatedData, {
+            new: true, // Return the updated document
+        });
+        if (!updatedStudent) {
+            return res.status(404).json({ message: "Student not found" });
+        }
+        return res
+            .status(200)
+            .json({ message: "Student has been updated!", data: updatedStudent });
+    }
+    catch (error) {
+        // Improved error handling
+        console.error("Error updating student:", error);
+        return next(error);
+    }
+});
+exports.updateStudent = updateStudent;
+// export const updateStudent = async (
+//   req: AuthRequest,
+//   res: Response,
+//   next: NextFunction
+// ): Promise<any> => {
+//   const userId = req.userId;
+//   const { id } = req.params;
+//   // Log the ID to check its format
+//   console.log("Received ID:", id);
+//   try {
+//     // Check if the ID is valid
+//     if (!Types.ObjectId.isValid(id)) {
+//       return res.status(400).json({ message: "Invalid student ID format" });
+//     }
+//     // Convert to ObjectId if valid
+//     id = new Types.ObjectId(id);
+//     // Wrap multer file upload in a Promise for handling file
+//     await new Promise<void>((resolve, reject) => {
+//       upload.single("image")(req, res, (err) => {
+//         if (err) {
+//           if (err instanceof multer.MulterError) {
+//             reject(res.status(400).json({ message: "File upload error" }));
+//           } else {
+//             reject(res.status(500).json({ message: "Internal server error" }));
+//           }
+//         } else {
+//           resolve();
+//         }
+//       });
+//     });
+//     // Extract and prepare updated student data
+//     const {
+//       first_name,
+//       last_name,
+//       address,
+//       course,
+//       guardain_name,
+//       emergency_contact_number,
+//       emergency_contact_name,
+//       date_of_enroll,
+//       email,
+//       contact_number,
+//       gender,
+//       date_of_birth,
+//       refered_by,
+//     } = req.body;
+//     const updatedData: any = {
+//       first_name,
+//       last_name,
+//       address,
+//       course,
+//       guardain_name,
+//       emergency_contact_number,
+//       emergency_contact_name,
+//       date_of_enroll,
+//       email,
+//       contact_number,
+//       gender,
+//       date_of_birth,
+//       refered_by: refered_by || "",
+//       entry_by: userId, // Ensuring userId is included
+//     };
+//     // Handle image upload
+//     if (req.file) {
+//       const imagePath = req.file.path;
+//       const upload = await urlUpload(imagePath);
+//       updatedData.image = upload?.secure_url; // Update image if a new one is uploaded
+//     }
+//     // Update student in the database
+//     const updatedStudent = await StudentSchema.findByIdAndUpdate(
+//       id,
+//       updatedData,
+//       {
+//         new: true, // Return the updated document
+//       }
+//     );
+//     if (!updatedStudent) {
+//       return res.status(404).json({ message: "Student not found" });
+//     }
+//     return res
+//       .status(200)
+//       .json({ message: "Student has been updated!", data: updatedStudent });
+//   } catch (error) {
+//     next(error);
+//   }
+// };
+// export const updateStudent = async (
+//   req: AuthRequest,
+//   res: Response
+// ): Promise<void> => {
+//   const userId = req.userId;
+//   const { id } = req.params;
+//   const updatedStudentData = { ...req.body, entry_by: userId };
+//   console.log("🚀 ~ updatedStudentData:", updatedStudentData);
+//   try {
+//     const updateStudent = await StudentSchema.findByIdAndUpdate(
+//       id,
+//       updatedStudentData,
+//       { new: true }
+//     );
+//     if (!updateStudent) {
+//       res.status(404).json({ error: "Student data not found" });
+//     }
+//     res.status(200).json({ message: "Student has been updated!" });
+//   } catch (error) {
+//     res.status(500).json({
+//       error: "An error occurred while updating student data",
+//     });
+//   }
+// };
 const getAllStudents = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const page = parseInt(req.query.page) || 1; // Default to page 1
@@ -122,23 +302,6 @@ const getAllStudents = (req, res) => __awaiter(void 0, void 0, void 0, function*
     }
 });
 exports.getAllStudents = getAllStudents;
-const updateStudent = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { id } = req.params;
-    const updatedStudentData = req.body;
-    try {
-        const updateStudent = yield students_models_1.StudentSchema.findByIdAndUpdate(id, updatedStudentData, { new: true });
-        if (!updateStudent) {
-            res.status(404).json({ error: "Student data not found" });
-        }
-        res.status(200).json({ message: "Student has been updated!" });
-    }
-    catch (error) {
-        res.status(500).json({
-            error: "An error occurred while updating student data",
-        });
-    }
-});
-exports.updateStudent = updateStudent;
 function updateStudentArchiveStatus(id, shouldArchive) {
     return __awaiter(this, void 0, void 0, function* () {
         const student = yield students_models_1.StudentSchema.findById(id);
@@ -203,6 +366,17 @@ const deleteStudent = (req, res) => __awaiter(void 0, void 0, void 0, function* 
             res
                 .status(400)
                 .json({ error: "Student must be archived before deletion" });
+            return;
+        }
+        const studentWithPayment = yield payments_model_1.PaymentSchema.countDocuments({
+            student: id,
+        });
+        if (studentWithPayment > 0) {
+            res.status(400).json({
+                error: "Cannot delete student because it payment data",
+                studentsCount: studentWithPayment,
+                message: "You must manage and resolve payment before deletion",
+            });
             return;
         }
         const deleteResult = yield students_models_1.StudentSchema.deleteOne({ _id: id });
