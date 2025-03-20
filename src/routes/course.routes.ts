@@ -8,12 +8,13 @@ import {
   deleteCourse,
   allActiveCourse,
 } from "../controllers/courses";
+import { auth } from "../middleware/middleware";
 
 export const courseRoute = express.Router();
 
-courseRoute.post("/create", createCourse);
-courseRoute.get("/", getAllCourse);
-courseRoute.delete("/delete/:id", deleteCourse);
-courseRoute.put("/activate/:id", activeCourse);
-courseRoute.put("/deactivate/:id", deactiveCourse);
+courseRoute.post("/create", auth, createCourse);
+courseRoute.get("/", auth, getAllCourse);
+courseRoute.delete("/delete/:id", auth, deleteCourse);
+courseRoute.put("/activate/:id", auth, activeCourse);
+courseRoute.put("/deactivate/:id", auth, deactiveCourse);
 courseRoute.get("/all", allActiveCourse);
