@@ -77,6 +77,10 @@ const StudentSchemaModel = new mongoose_1.default.Schema({
         type: Boolean,
         default: false,
     },
+    school_name: {
+        type: String,
+        required: true,
+    },
 }, {
     timestamps: true, // This adds createdAt and updatedAt fields
 });

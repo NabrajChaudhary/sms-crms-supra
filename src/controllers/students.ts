@@ -16,7 +16,7 @@ export const createStudent = async (
   req: AuthRequest,
   res: Response,
   next: NextFunction
-): Promise<any> => {
+): Promise<void> => {
   const userId = req.userId;
 
   try {
@@ -40,6 +40,7 @@ export const createStudent = async (
         gender,
         date_of_birth,
         refered_by,
+        school_name,
       } = req.body;
 
       const imagePath = req.file ? req.file.path : "";
@@ -57,7 +58,8 @@ export const createStudent = async (
         !emergency_contact_name ||
         !emergency_contact_number ||
         !date_of_birth ||
-        !gender
+        !gender ||
+        !school_name
       ) {
         res.status(400).json({ message: "Missing required fields" });
         return;
@@ -89,6 +91,7 @@ export const createStudent = async (
         date_of_birth,
         refered_by,
         image: upload?.secure_url,
+        school_name,
       }).save();
 
       await revalidationTag("student");
@@ -147,6 +150,7 @@ export const updateStudent = async (
       gender,
       date_of_birth,
       refered_by,
+      school_name,
     } = req.body;
 
     const updatedData: any = {
@@ -162,6 +166,7 @@ export const updateStudent = async (
       contact_number,
       gender,
       date_of_birth,
+      school_name,
       refered_by: refered_by || "",
       entry_by: userId, // Ensuring userId is included
     };
@@ -395,286 +400,573 @@ export const getStudentById = async (
   }
 };
 
-export const generateStudentData = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
-  const { id } = req.params;
+// export const generateStudentData = async (
+//   req: Request,
+//   res: Response,
+//   next: NextFunction
+// ): Promise<void> => {
+//   const { id } = req.params;
 
-  try {
-    // Fetch student data from database with proper typing
-    const studentData = (await StudentSchema.findById(id, {
-      __v: 0,
-    })
-      .populate([
-        {
-          path: "course",
-          select: "course_name course_slug course_duration start_date",
-        },
-        {
-          path: "entry_by",
-          select: "first_name last_name",
-        },
-      ])
-      .lean()) as unknown as StudentType;
+//   try {
+//     // Fetch student data from database with proper typing
+//     const studentData = (await StudentSchema.findById(id, {
+//       __v: 0,
+//     })
+//       .populate([
+//         {
+//           path: "course",
+//           select: "course_name course_slug course_duration start_date",
+//         },
+//         {
+//           path: "entry_by",
+//           select: "first_name last_name",
+//         },
+//       ])
+//       .lean()) as unknown as StudentType;
 
-    if (!studentData) {
-      res.status(404).json({ message: "Student data not found!" });
-      return;
-    }
+//     if (!studentData) {
+//       res.status(404).json({ message: "Student data not found!" });
+//       return;
+//     }
 
-    // Create a PDF document
-    const doc = new PDFDocument({
-      margin: 50,
-      size: "A4",
-    });
+//     // Create a PDF document
+//     const doc = new PDFDocument({
+//       margin: 50,
+//       size: "A4",
+//     });
 
-    // Set response headers
-    res.setHeader("Content-Type", "application/pdf");
-    res.setHeader(
-      "Content-Disposition",
-      `attachment; filename=${studentData.first_name}_${studentData.last_name}.pdf`
-    );
+//     // Set response headers
+//     res.setHeader("Content-Type", "application/pdf");
+//     res.setHeader(
+//       "Content-Disposition",
+//       `attachment; filename=${studentData.first_name}_${studentData.last_name}.pdf`
+//     );
 
-    // Pipe the PDF to the response
-    doc.pipe(res);
+//     // Pipe the PDF to the response
+//     doc.pipe(res);
 
-    // Define colors and styles
-    const primaryColor = "#000000"; // Blue
-    const secondaryColor = "#ffffff"; // Light gray
-    const textColor = "#000000"; // Dark gray
+//     // Define colors and styles
+//     const primaryColor = "#000000"; // Blue
+//     const secondaryColor = "#ffffff"; // Light gray
+//     const textColor = "#000000"; // Dark gray
 
-    // Add a header with title
-    doc.fontSize(20).fillColor(primaryColor).text("", { align: "center" });
+//     // Add a header with title
+//     doc.fontSize(20).fillColor(primaryColor).text("", { align: "center" });
 
-    doc.moveDown();
+//     doc.moveDown();
 
-    // Calculate positions
-    const pageWidth = doc.page.width - 100; // Account for margins
+//     // Calculate positions
+//     const pageWidth = doc.page.width - 100; // Account for margins
 
-    // Position for the image - ABOVE the card
-    const imageX = 50; // Position it to the right
-    const imageY = doc.y; // Current Y position after the title
+//     // Position for the image - ABOVE the card
+//     const imageX = 50; // Position it to the right
+//     const imageY = doc.y; // Current Y position after the title
 
-    // Add student image if available - BEFORE drawing the card
-    if (studentData.image && studentData.image.trim() !== "") {
-      try {
-        // Fetch the image from the URL
-        const imageResponse = await fetch(studentData.image);
+//     // Add student image if available - BEFORE drawing the card
+//     if (studentData.image && studentData.image.trim() !== "") {
+//       try {
+//         // Fetch the image from the URL
+//         const imageResponse = await fetch(studentData.image);
 
-        if (imageResponse.ok) {
-          // Convert the image to a buffer
-          const imageBuffer = await imageResponse.buffer();
+//         if (imageResponse.ok) {
+//           // Convert the image to a buffer
+//           const imageBuffer = await imageResponse.buffer();
 
-          // Add the image with exact dimensions of 100x100px
-          doc.image(imageBuffer, imageX, imageY, {
-            width: 90,
-            height: 90,
-          });
-        } else {
-          throw new Error(
-            `Failed to fetch image: ${imageResponse.status} ${imageResponse.statusText}`
-          );
-        }
-      } catch (error) {
-        console.error("Error adding image to PDF:", error);
-        addImagePlaceholder(doc, imageX, imageY, primaryColor, textColor);
-      }
-    } else {
-      // No image URL available, add a placeholder
-      addImagePlaceholder(doc, imageX, imageY, primaryColor, textColor);
-    }
+//           // Add the image with exact dimensions of 100x100px
+//           doc.image(imageBuffer, imageX, imageY, {
+//             width: 90,
+//             height: 90,
+//           });
+//         } else {
+//           throw new Error(
+//             `Failed to fetch image: ${imageResponse.status} ${imageResponse.statusText}`
+//           );
+//         }
+//       } catch (error) {
+//         console.error("Error adding image to PDF:", error);
+//         addImagePlaceholder(doc, imageX, imageY, primaryColor, textColor);
+//       }
+//     } else {
+//       // No image URL available, add a placeholder
+//       addImagePlaceholder(doc, imageX, imageY, primaryColor, textColor);
+//     }
 
-    // Move down to create space between image and card
-    doc.moveDown(4); // Adjust this value as needed to create enough space
+//     // Move down to create space between image and card
+//     doc.moveDown(4); // Adjust this value as needed to create enough space
 
-    // Start the card after the image
-    const cardStartY = doc.y;
+//     // Start the card after the image
+//     const cardStartY = doc.y;
 
-    // Draw card background
-    doc
-      .roundedRect(50, cardStartY, pageWidth, 400, 10)
-      .fillAndStroke(secondaryColor, primaryColor);
+//     // Draw card background
+//     doc
+//       .roundedRect(50, cardStartY, pageWidth, 400, 10)
+//       .fillAndStroke(secondaryColor, primaryColor);
 
-    // Student Information Section
-    doc
-      .fillColor(textColor)
-      .fontSize(16)
-      .text("Student Information", 70, cardStartY + 30);
+//     // Student Information Section
+//     doc
+//       .fillColor(textColor)
+//       .fontSize(16)
+//       .text("Student Information", 70, cardStartY + 30);
 
-    doc.fontSize(12);
+//     doc.fontSize(12);
 
-    // Create two columns for student info
-    const col1X = 70;
-    const col2X = 300;
-    let rowY = cardStartY + 60;
+//     // Create two columns for student info
+//     const col1X = 70;
+//     const col2X = 300;
+//     let rowY = cardStartY + 60;
 
-    // Column 1
-    doc.text("Name:", col1X, rowY);
-    doc.text(
-      `${studentData.first_name || ""} ${studentData.last_name || ""}`,
-      col1X + 50,
-      rowY
-    );
-    rowY += 20;
+//     // Column 1
+//     doc.text("Name:", col1X, rowY);
+//     doc.text(
+//       `${studentData.first_name || ""} ${studentData.last_name || ""}`,
+//       col1X + 50,
+//       rowY
+//     );
+//     rowY += 20;
 
-    doc.text("Email:", col1X, rowY);
-    doc.text(`${studentData.email || "N/A"}`, col1X + 50, rowY);
-    rowY += 20;
+//     doc.text("Email:", col1X, rowY);
+//     doc.text(`${studentData.email || "N/A"}`, col1X + 50, rowY);
+//     rowY += 20;
 
-    doc.text("Phone:", col1X, rowY);
-    doc.text(`${studentData.contact_number || "N/A"}`, col1X + 50, rowY);
-    rowY += 20;
+//     doc.text("Phone:", col1X, rowY);
+//     doc.text(`${studentData.contact_number || "N/A"}`, col1X + 50, rowY);
+//     rowY += 20;
 
-    doc.text("Gender:", col1X, rowY);
-    doc.text(`${studentData.gender || "N/A"}`, col1X + 50, rowY);
-    rowY += 20;
+//     doc.text("Gender:", col1X, rowY);
+//     doc.text(`${studentData.gender || "N/A"}`, col1X + 50, rowY);
+//     rowY += 20;
 
-    doc.text("Date of Birth:", col1X, rowY);
-    doc.text(`${studentData.date_of_birth}`, col1X + 80, rowY);
+//     doc.text("Date of Birth:", col1X, rowY);
+//     doc.text(`${studentData.date_of_birth}`, col1X + 80, rowY);
 
-    // Column 2
-    rowY = cardStartY + 60;
+//     // Column 2
+//     rowY = cardStartY + 60;
 
-    doc.text("Address:", col2X, rowY);
-    doc.text(`${studentData.address || "N/A"}`, col2X + 50, rowY, {
-      width: 150,
-    });
-    rowY += 40; // More space for address
+//     doc.text("Address:", col2X, rowY);
+//     doc.text(`${studentData.address || "N/A"}`, col2X + 50, rowY, {
+//       width: 150,
+//     });
+//     rowY += 40; // More space for address
 
-    doc.text("Guardian:", col2X, rowY);
-    doc.text(`${studentData.guardain_name || "N/A"}`, col2X + 60, rowY);
-    rowY += 20;
+//     doc.text("Guardian:", col2X, rowY);
+//     doc.text(`${studentData.guardain_name || "N/A"}`, col2X + 60, rowY);
+//     rowY += 20;
 
-    doc.text("E. C. Name:", col2X, rowY);
-    doc.text(
-      `${studentData.emergency_contact_name || "N/A"}`,
-      col2X + 70,
-      rowY
-    );
-    rowY += 20;
+//     doc.text("E. C. Name:", col2X, rowY);
+//     doc.text(
+//       `${studentData.emergency_contact_name || "N/A"}`,
+//       col2X + 70,
+//       rowY
+//     );
+//     rowY += 20;
 
-    doc.text("E. C. Phone:", col2X, rowY);
-    doc.text(
-      `${studentData.emergency_contact_number || "N/A"}`,
-      col2X + 70,
-      rowY
-    );
+//     doc.text("E. C. Phone:", col2X, rowY);
+//     doc.text(
+//       `${studentData.emergency_contact_number || "N/A"}`,
+//       col2X + 70,
+//       rowY
+//     );
 
-    // Course Information Section
-    rowY = cardStartY + 180;
-    doc
-      .fillColor(primaryColor)
-      .fontSize(16)
-      .text("Course Information", 70, rowY);
+//     // Course Information Section
+//     rowY = cardStartY + 180;
+//     doc
+//       .fillColor(primaryColor)
+//       .fontSize(16)
+//       .text("Course Information", 70, rowY);
 
-    doc.fillColor(textColor).fontSize(12);
+//     doc.fillColor(textColor).fontSize(12);
 
-    rowY += 30;
+//     rowY += 30;
 
-    // Draw a line to separate sections
-    doc
-      .moveTo(70, rowY - 10)
-      .lineTo(pageWidth - 20, rowY - 10)
-      .stroke(primaryColor);
+//     // Draw a line to separate sections
+//     doc
+//       .moveTo(70, rowY - 10)
+//       .lineTo(pageWidth - 20, rowY - 10)
+//       .stroke(primaryColor);
 
-    // Course details
-    doc.text("Course Name:", col1X, rowY);
-    doc.text(`${studentData.course?.course_name || "N/A"}`, col1X + 100, rowY);
-    rowY += 20;
+//     // Course details
+//     doc.text("Course Name:", col1X, rowY);
+//     doc.text(`${studentData.course?.course_name || "N/A"}`, col1X + 100, rowY);
+//     rowY += 20;
 
-    doc.text("Duration:", col1X, rowY);
-    doc.text(
-      `${studentData.course?.course_duration || "N/A"}`,
-      col1X + 100,
-      rowY
-    );
-    rowY += 20;
+//     doc.text("Duration:", col1X, rowY);
+//     doc.text(
+//       `${studentData.course?.course_duration || "N/A"}`,
+//       col1X + 100,
+//       rowY
+//     );
+//     rowY += 20;
 
-    doc.text("Start Date:", col1X, rowY);
-    doc.text(
-      `${
-        studentData.course?.start_date
-          ? new Date(studentData.course.start_date).toLocaleDateString()
-          : "N/A"
-      }`,
-      col1X + 100,
-      rowY
-    );
-    rowY += 20;
+//     doc.text("Start Date:", col1X, rowY);
+//     doc.text(
+//       `${
+//         studentData.course?.start_date
+//           ? new Date(studentData.course.start_date).toLocaleDateString()
+//           : "N/A"
+//       }`,
+//       col1X + 100,
+//       rowY
+//     );
+//     rowY += 20;
 
-    doc.text("Enrollment Date:", col1X, rowY);
-    doc.text(
-      `${
-        studentData.date_of_enroll
-          ? new Date(studentData.date_of_enroll).toLocaleDateString()
-          : "N/A"
-      }`,
-      col1X + 100,
-      rowY
-    );
-    rowY += 20;
+//     doc.text("Enrollment Date:", col1X, rowY);
+//     doc.text(
+//       `${
+//         studentData.date_of_enroll
+//           ? new Date(studentData.date_of_enroll).toLocaleDateString()
+//           : "N/A"
+//       }`,
+//       col1X + 100,
+//       rowY
+//     );
+//     rowY += 20;
 
-    doc.text("Refered By:", col1X, rowY);
-    doc.text(`${studentData?.refered_by || "N/A"}`, col1X + 100, rowY);
-    // Footer
-    const footerY = cardStartY + 350;
+//     doc.text("Refered By:", col1X, rowY);
+//     doc.text(`${studentData?.refered_by || "N/A"}`, col1X + 100, rowY);
+//     // Footer
+//     const footerY = cardStartY + 350;
 
-    // Draw a line to separate footer
-    doc
-      .moveTo(70, footerY)
-      .lineTo(pageWidth - 20, footerY)
-      .stroke(primaryColor);
+//     // Draw a line to separate footer
+//     doc
+//       .moveTo(70, footerY)
+//       .lineTo(pageWidth - 20, footerY)
+//       .stroke(primaryColor);
 
-    doc
-      .fontSize(10)
-      .text(
-        `Entry by: ${studentData.entry_by?.first_name || ""} ${
-          studentData.entry_by?.last_name || ""
-        }`,
-        70,
-        footerY + 15
-      );
+//     doc
+//       .fontSize(10)
+//       .text(
+//         `Entry by: ${studentData.entry_by?.first_name || ""} ${
+//           studentData.entry_by?.last_name || ""
+//         }`,
+//         70,
+//         footerY + 15
+//       );
 
-    doc.text(
-      `Generated on: ${new Date().toLocaleDateString()}`,
-      pageWidth - 150,
-      footerY + 15
-    );
+//     doc.text(
+//       `Generated on: ${new Date().toLocaleDateString()}`,
+//       pageWidth - 150,
+//       footerY + 15
+//     );
 
-    // Add a QR code placeholder or reference number
-    doc.fontSize(8).text(`Reference ID: ${studentData._id}`, 70, footerY + 30);
+//     // Add a QR code placeholder or reference number
+//     doc.fontSize(8).text(`Reference ID: ${studentData._id}`, 70, footerY + 30);
 
-    // Finalize the PDF
-    doc.end();
-    res.status(200).json({ message: "PDF has been generated successfully" });
-  } catch (error) {
-    console.error("Error in PDF generation:", error);
+//     // Finalize the PDF
+//     doc.end();
+//   } catch (error) {
+//     console.error("Error in PDF generation:", error);
 
-    // Send error response
-    res.status(500).json({
-      error: "Failed to generate PDF",
-    });
-  }
-};
+//     // Send error response
+//     res.status(500).json({
+//       error: "Failed to generate PDF",
+//     });
+//   }
+// };
 
-// Helper function to add image placeholder
-function addImagePlaceholder(
-  doc: PDFKit.PDFDocument,
-  x: number,
-  y: number,
-  borderColor: string,
-  textColor: string
-) {
-  doc.roundedRect(x, y, 100, 100, 5).fillAndStroke("#f5f5f5", borderColor);
-  doc
-    .fontSize(8)
-    .fillColor(textColor)
-    .text("No image available", x + 10, y + 40, {
-      width: 80,
-      align: "center",
-    });
-}
+// // Helper function to add image placeholder
+// function addImagePlaceholder(
+//   doc: PDFKit.PDFDocument,
+//   x: number,
+//   y: number,
+//   borderColor: string,
+//   textColor: string
+// ) {
+//   doc.roundedRect(x, y, 100, 100, 5).fillAndStroke("#f5f5f5", borderColor);
+//   doc
+//     .fontSize(8)
+//     .fillColor(textColor)
+//     .text("No image available", x + 10, y + 40, {
+//       width: 80,
+//       align: "center",
+//     });
+// }
+
+// export const generateStudentData = async (
+//   req: Request,
+//   res: Response,
+//   next: NextFunction
+// ): Promise<void> => {
+//   const { id } = req.params;
+
+//   try {
+//     // Fetch student data from database with proper typing
+//     const studentData = (await StudentSchema.findById(id, {
+//       __v: 0,
+//     })
+//       .populate([
+//         {
+//           path: "course",
+//           select: "course_name course_slug course_duration start_date",
+//         },
+//         {
+//           path: "entry_by",
+//           select: "first_name last_name",
+//         },
+//       ])
+//       .lean()) as unknown as StudentType;
+
+//     if (!studentData) {
+//       res.status(404).json({ message: "Student data not found!" });
+//       return;
+//     }
+
+//     // Create a PDF document
+//     const doc = new PDFDocument({
+//       margin: 50,
+//       size: "A4",
+//     });
+
+//     // Set response headers - make sure these are set correctly
+//     res.setHeader("Content-Type", "application/pdf");
+//     res.setHeader(
+//       "Content-Disposition",
+//       `attachment; filename="${studentData.first_name}_${studentData.last_name}.pdf"`
+//     );
+
+//     // Instead of collecting chunks and sending at the end, pipe directly to response
+//     doc.pipe(res);
+
+//     // Define colors and styles
+//     const primaryColor = "#000000"; // Black
+//     const secondaryColor = "#ffffff"; // White
+//     const textColor = "#000000"; // Black
+
+//     // Add a header with title
+//     doc
+//       .fontSize(20)
+//       .fillColor(primaryColor)
+//       .text("Student Information", { align: "center" });
+
+//     doc.moveDown();
+
+//     // Calculate positions
+//     const pageWidth = doc.page.width - 100; // Account for margins
+
+//     // Position for the image - ABOVE the card
+//     const imageX = 50; // Position it to the right
+//     const imageY = doc.y; // Current Y position after the title
+
+//     // Add student image if available - BEFORE drawing the card
+//     if (studentData.image && studentData.image.trim() !== "") {
+//       try {
+//         // Fetch the image from the URL
+//         const imageResponse = await fetch(studentData.image);
+
+//         if (imageResponse.ok) {
+//           // Convert the image to a buffer
+//           const imageBuffer = await imageResponse.arrayBuffer();
+//           const buffer = Buffer.from(imageBuffer);
+
+//           // Add the image with exact dimensions of 100x100px
+//           doc.image(buffer, imageX, imageY, {
+//             width: 90,
+//             height: 90,
+//           });
+//         } else {
+//           throw new Error(
+//             `Failed to fetch image: ${imageResponse.status} ${imageResponse.statusText}`
+//           );
+//         }
+//       } catch (error) {
+//         console.error("Error adding image to PDF:", error);
+//         addImagePlaceholder(doc, imageX, imageY, primaryColor, textColor);
+//       }
+//     } else {
+//       // No image URL available, add a placeholder
+//       addImagePlaceholder(doc, imageX, imageY, primaryColor, textColor);
+//     }
+
+//     // Move down to create space between image and card
+//     doc.moveDown(4); // Adjust this value as needed to create enough space
+
+//     // Start the card after the image
+//     const cardStartY = doc.y;
+
+//     // Draw card background
+//     doc
+//       .roundedRect(50, cardStartY, pageWidth, 400, 10)
+//       .fillAndStroke(secondaryColor, primaryColor);
+
+//     // Student Information Section
+//     doc
+//       .fillColor(textColor)
+//       .fontSize(16)
+//       .text("Student Information", 70, cardStartY + 30);
+
+//     doc.fontSize(12);
+
+//     // Create two columns for student info
+//     const col1X = 70;
+//     const col2X = 300;
+//     let rowY = cardStartY + 60;
+
+//     // Column 1
+//     doc.text("Name:", col1X, rowY);
+//     doc.text(
+//       `${studentData.first_name || ""} ${studentData.last_name || ""}`,
+//       col1X + 50,
+//       rowY
+//     );
+//     rowY += 20;
+
+//     doc.text("Email:", col1X, rowY);
+//     doc.text(`${studentData.email || "N/A"}`, col1X + 50, rowY);
+//     rowY += 20;
+
+//     doc.text("Phone:", col1X, rowY);
+//     doc.text(`${studentData.contact_number || "N/A"}`, col1X + 50, rowY);
+//     rowY += 20;
+
+//     doc.text("Gender:", col1X, rowY);
+//     doc.text(`${studentData.gender || "N/A"}`, col1X + 50, rowY);
+//     rowY += 20;
+
+//     doc.text("Date of Birth:", col1X, rowY);
+//     doc.text(`${studentData.date_of_birth}`, col1X + 80, rowY);
+
+//     // Column 2
+//     rowY = cardStartY + 60;
+
+//     doc.text("Address:", col2X, rowY);
+//     doc.text(`${studentData.address || "N/A"}`, col2X + 50, rowY, {
+//       width: 150,
+//     });
+//     rowY += 40; // More space for address
+
+//     doc.text("Guardian:", col2X, rowY);
+//     doc.text(`${studentData.guardain_name || "N/A"}`, col2X + 60, rowY);
+//     rowY += 20;
+
+//     doc.text("E. C. Name:", col2X, rowY);
+//     doc.text(
+//       `${studentData.emergency_contact_name || "N/A"}`,
+//       col2X + 70,
+//       rowY
+//     );
+//     rowY += 20;
+
+//     doc.text("E. C. Phone:", col2X, rowY);
+//     doc.text(
+//       `${studentData.emergency_contact_number || "N/A"}`,
+//       col2X + 70,
+//       rowY
+//     );
+
+//     // Course Information Section
+//     rowY = cardStartY + 180;
+//     doc
+//       .fillColor(primaryColor)
+//       .fontSize(16)
+//       .text("Course Information", 70, rowY);
+
+//     doc.fillColor(textColor).fontSize(12);
+
+//     rowY += 30;
+
+//     // Draw a line to separate sections
+//     doc
+//       .moveTo(70, rowY - 10)
+//       .lineTo(pageWidth - 20, rowY - 10)
+//       .stroke(primaryColor);
+
+//     // Course details
+//     doc.text("Course Name:", col1X, rowY);
+//     doc.text(`${studentData.course?.course_name || "N/A"}`, col1X + 100, rowY);
+//     rowY += 20;
+
+//     doc.text("Duration:", col1X, rowY);
+//     doc.text(
+//       `${studentData.course?.course_duration || "N/A"}`,
+//       col1X + 100,
+//       rowY
+//     );
+//     rowY += 20;
+
+//     doc.text("Start Date:", col1X, rowY);
+//     doc.text(
+//       `${
+//         studentData.course?.start_date
+//           ? new Date(studentData.course.start_date).toLocaleDateString()
+//           : "N/A"
+//       }`,
+//       col1X + 100,
+//       rowY
+//     );
+//     rowY += 20;
+
+//     doc.text("Enrollment Date:", col1X, rowY);
+//     doc.text(
+//       `${
+//         studentData.date_of_enroll
+//           ? new Date(studentData.date_of_enroll).toLocaleDateString()
+//           : "N/A"
+//       }`,
+//       col1X + 100,
+//       rowY
+//     );
+//     rowY += 20;
+
+//     doc.text("Refered By:", col1X, rowY);
+//     doc.text(`${studentData?.refered_by || "N/A"}`, col1X + 100, rowY);
+
+//     // Footer
+//     const footerY = cardStartY + 350;
+
+//     // Draw a line to separate footer
+//     doc
+//       .moveTo(70, footerY)
+//       .lineTo(pageWidth - 20, footerY)
+//       .stroke(primaryColor);
+
+//     doc
+//       .fontSize(10)
+//       .text(
+//         `Entry by: ${studentData.entry_by?.first_name || ""} ${
+//           studentData.entry_by?.last_name || ""
+//         }`,
+//         70,
+//         footerY + 15
+//       );
+
+//     doc.text(
+//       `Generated on: ${new Date().toLocaleDateString()}`,
+//       pageWidth - 150,
+//       footerY + 15
+//     );
+
+//     // Add a QR code placeholder or reference number
+//     doc.fontSize(8).text(`Reference ID: ${studentData._id}`, 70, footerY + 30);
+
+//     // Finalize the PDF
+//     doc.end();
+//   } catch (error) {
+//     console.error("Error in PDF generation:", error);
+
+//     // Send error response
+//     res.status(500).json({
+//       error: "Failed to generate PDF",
+//       details: error instanceof Error ? error.message : String(error),
+//     });
+//   }
+// };
+
+// // Helper function to add image placeholder
+// function addImagePlaceholder(
+//   doc: PDFKit.PDFDocument,
+//   x: number,
+//   y: number,
+//   borderColor: string,
+//   textColor: string
+// ) {
+//   doc.roundedRect(x, y, 100, 100, 5).fillAndStroke("#f5f5f5", borderColor);
+//   doc
+//     .fontSize(8)
+//     .fillColor(textColor)
+//     .text("No image available", x + 10, y + 40, {
+//       width: 80,
+//       align: "center",
+//     });
+// }
 
 export const getArchivedStudents = async (
   req: Request,

@@ -16,4 +16,12 @@ exports.studentRoute.get("/:id", middleware_1.auth, students_1.getStudentById);
 exports.studentRoute.put("/restore/:id", middleware_1.isSuperAdmin, students_1.restoreStudent);
 exports.studentRoute.put("/remove/:id", middleware_1.auth, students_1.removeStudent);
 exports.studentRoute.get("/archived/all", middleware_1.auth, middleware_1.isSuperAdmin, students_1.getArchivedStudents);
-exports.studentRoute.get("/print/:id", middleware_1.auth, students_1.generateStudentData);
+// // Route to generate and download student PDF
+// studentRoute.get("/print/:id/pdf", (req, res, next) => {
+//   // Set cache control headers to prevent caching issues
+//   res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+//   res.setHeader("Pragma", "no-cache");
+//   res.setHeader("Expires", "0");
+//   // Call the PDF generator
+//   generateStudentData(req, res, next);
+// });

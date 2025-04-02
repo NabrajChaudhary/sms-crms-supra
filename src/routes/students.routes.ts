@@ -2,7 +2,7 @@ import express from "express";
 import {
   createStudent,
   deleteStudent,
-  generateStudentData,
+  // generateStudentData,
   getAllStudents,
   getArchivedStudents,
   getStudentById,
@@ -22,4 +22,13 @@ studentRoute.get("/:id", auth, getStudentById);
 studentRoute.put("/restore/:id", isSuperAdmin, restoreStudent);
 studentRoute.put("/remove/:id", auth, removeStudent);
 studentRoute.get("/archived/all", auth, isSuperAdmin, getArchivedStudents);
-studentRoute.get("/print/:id", auth, generateStudentData);
+// // Route to generate and download student PDF
+// studentRoute.get("/print/:id/pdf", (req, res, next) => {
+//   // Set cache control headers to prevent caching issues
+//   res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+//   res.setHeader("Pragma", "no-cache");
+//   res.setHeader("Expires", "0");
+
+//   // Call the PDF generator
+//   generateStudentData(req, res, next);
+// });
