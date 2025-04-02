@@ -6,6 +6,7 @@ import { NextFunction, Request, Response } from "express";
 import { AuthSchema } from "../models/auth.models";
 import { SECRET_KEY } from "../config/constant";
 import { AuthRequest, UserType } from "../types/auth.types";
+import { generatePassword } from "../utils/coreFunctions";
 
 export const signUp = async (
   req: Request,
@@ -118,4 +119,126 @@ export const getProfile = async (
     next(error);
     res.status(500).json({ message: "Something went wrong" });
   }
+};
+
+export const getAllUsers = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+): Promise<any> => {
+  try {
+    const page = parseInt(req.query.page as string) || 1; // Default to page 1
+    const limit = parseInt(req.query.limit as string) || 10; // Default to 10 records per page
+    const skip = (page - 1) * limit; // Calculate the number of documents to skip
+
+    // Fetch total students count for pagination metadata
+    const totalCount = await AuthSchema.countDocuments({ role: "admin" });
+
+    const allUsers = await AuthSchema.find({ role: "admin" }).select(
+      "-__v -password"
+    );
+
+    if (!allUsers) {
+      res.status(404).json({ message: "No students found!" });
+      return;
+    }
+    res.status(200).json({
+      data: allUsers,
+      currentPage: page,
+      totalPages: Math.ceil(totalCount / limit),
+      total: totalCount,
+      skip: skip,
+      message: "Users have been fetched",
+    });
+  } catch (error) {
+    res.status(500).json({
+      error: "An error occurred while fetching users",
+    });
+  }
+};
+
+interface UsersUpdateResult {
+  success: boolean;
+  message: string;
+}
+
+async function updateUserArchiveStatus(
+  id: string,
+  shouldActive: boolean
+): Promise<UsersUpdateResult> {
+  const user = await AuthSchema.findById(id);
+
+  if (!user) {
+    return { success: false, message: "User data not found" };
+  }
+
+  if (user.isActive === shouldActive) {
+    const status = shouldActive ? "active" : "deactived";
+    return { success: false, message: `User is already ${status}` };
+  }
+
+  user.isActive = shouldActive;
+  await user.save();
+
+  const action = shouldActive ? "active" : "deactived";
+  return { success: true, message: `User has been ${action}!` };
+}
+
+export const deactivateUser = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const { id } = req.params;
+
+  try {
+    const result = await updateUserArchiveStatus(id, false);
+
+    if (!result.success) {
+      res.status(400).json({ error: result.message });
+    } else {
+      res.status(200).json({ message: result.message });
+    }
+  } catch (error) {
+    res.status(500).json({
+      error: "An error occurred while disabling user",
+    });
+  }
+};
+
+export const activateUser = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const { id } = req.params;
+
+  try {
+    const result = await updateUserArchiveStatus(id, true);
+
+    if (!result.success) {
+      res.status(400).json({ error: result.message });
+    } else {
+      res.status(200).json({ message: result.message });
+    }
+  } catch (error) {
+    res.status(500).json({
+      error: "An error occurred while activating user",
+    });
+  }
+};
+
+export const resetUserPassword = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const { id } = req.params;
+  console.log("🚀 ~ id:", id);
+
+  try {
+    const user = await AuthSchema.findById(id);
+    console.log("🚀 ~ resetUser ~ user:", user);
+    console.log(generatePassword());
+    if (!user) {
+      res.status(404).json({ message: "This email has no user!" });
+    }
+  } catch (error) {}
 };

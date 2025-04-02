@@ -23,6 +23,10 @@ const AuthSchemaModel = new mongoose.Schema({
   avatar: {
     type: String,
   },
+  isActive: {
+    type: Boolean,
+    default: true,
+  },
   role: {
     type: String,
     enum: ["admin", "user"],
