@@ -2,11 +2,12 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import { PORT } from "./config/constant";
-import { dbConnection } from "./config/dbConnection";
+
 import { authRoute } from "./routes/auth.routes";
 import { studentRoute } from "./routes/students.routes";
 import { courseRoute } from "./routes/course.routes";
 import { PaymentRoute } from "./routes/payments.routes";
+import dbConnection from "./config/dbConnection";
 
 dotenv.config();
 
