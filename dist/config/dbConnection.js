@@ -12,14 +12,22 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.dbConnection = void 0;
 const mongoose_1 = __importDefault(require("mongoose"));
 const constant_1 = require("./constant");
-const db_connection_uri = constant_1.DB_URI;
 const dbConnection = () => __awaiter(void 0, void 0, void 0, function* () {
-    yield mongoose_1.default
-        .connect(db_connection_uri, {})
-        .then(() => console.log("Connected to database"))
-        .catch((err) => console.log("Connection Error", err));
+    try {
+        const db_connection_uri = constant_1.DB_URI;
+        if (!db_connection_uri) {
+            console.error("MONGODB_URI environment variable is not defined");
+            process.exit(1); // Exit with error
+        }
+        // Connect to MongoDB
+        yield mongoose_1.default.connect(db_connection_uri);
+        console.log("Connected to MongoDB successfully");
+    }
+    catch (error) {
+        console.error("MongoDB connection error:", error);
+        process.exit(1); // Exit with error
+    }
 });
-exports.dbConnection = dbConnection;
+exports.default = dbConnection;
