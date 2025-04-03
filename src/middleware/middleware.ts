@@ -59,7 +59,7 @@ export const isSuperAdmin = (
   next: NextFunction
 ): void => {
   auth(req, res, () => {
-    if (req.role !== "sup_admin") {
+    if (req.role !== "super-admin") {
       res.status(403).json({ message: "Permission Denied" });
       return;
     }
