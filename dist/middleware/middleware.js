@@ -42,7 +42,7 @@ const auth = (req, res, next) => {
 exports.auth = auth;
 const isSuperAdmin = (req, res, next) => {
     (0, exports.auth)(req, res, () => {
-        if (req.role !== "sup_admin") {
+        if (req.role !== "super-admin") {
             res.status(403).json({ message: "Permission Denied" });
             return;
         }

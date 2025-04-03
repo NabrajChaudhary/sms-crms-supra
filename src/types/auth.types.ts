@@ -6,7 +6,7 @@ export type UserType = {
   _id: Types.ObjectId;
   email: string;
   password: string;
-  role: "admin" | "sup_admin" | "user";
+  role: "admin" | "super-admin" | "user";
 };
 
 export interface AuthRequest extends Request {
