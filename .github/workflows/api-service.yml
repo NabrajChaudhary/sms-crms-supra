@@ -1,29 +1,46 @@
 name: API Service CI/CD on Amazon Linux
 
-on:
-  push:
-    branches:
+on: 
+  push: 
+    branches: 
       - main
 
-jobs:
-  build:
+jobs: 
+  deploy: 
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+    - name: Checkout repository
+      uses: actions/checkout@v2
 
-      - name: Setup SSH key
-        uses: webfactory/ssh-agent@v0.5.3
-        with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+    - name: Install dependencies
+      run: npm install
 
-      - name: Execute deployment script
-        run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} << 'EOF'
-          # Your deployment commands here
-          EOF
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-          REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
-          REMOTE_USER: ${{ secrets.REMOTE_USER }}
+    - name: Print env variables (for debug)
+      run: |
+        echo "REMOTE_HOST: $REMOTE_HOST"
+        echo "REMOTE_USER: $REMOTE_USER"
+      env:
+        REMOTE_HOST: ${{ secrets.HOST_DNS }}
+        REMOTE_USER: ${{ secrets.USERNAME }}
+
+    - name: Deploy to AWS EC2
+      uses: appleboy/scp-action@master
+      with:
+        source: "./"
+        target: "/var/www/sms-crms-supra"
+      env:
+        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        REMOTE_HOST: ${{ secrets.HOST_DNS }}
+        REMOTE_USER: ${{ secrets.USERNAME }}
+
+    - name: Restart PM2 application
+      uses: appleboy/ssh-action@master
+      with:
+        script: |
+          cd /var/www/sms-crms-supra
+          pm2 reload all  # This command restarts your application
+      env:
+        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        REMOTE_HOST: ${{ secrets.HOST_DNS }}
+        REMOTE_USER: ${{ secrets.USERNAME }}
