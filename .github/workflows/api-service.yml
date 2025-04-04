@@ -1,15 +1,17 @@
-name: api service CI/CD on Amazon Linux
+name: API Service CI/CD on Amazon Linux
 
 on:
   push:
-    branches: [ main ]
+    branches: 
+      - main
 
-    jobs:
+jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - name: Checkout repository
+      uses: actions/checkout@v2
 
     - name: Install dependencies
       run: npm install
@@ -17,18 +19,20 @@ on:
     - name: Deploy to AWS EC2
       uses: appleboy/scp-action@master
       with:
-        host: ${{ secrets.REMOTE_HOST }}
-        username: ${{ secrets.REMOTE_USER }}
-        key: ${{ secrets.SSH_PRIVATE_KEY }}
-        source: "./"  # This now correctly points to the current directory
+        source: "./"
         target: "/var/www/system-api"
+      env:
+        SSH_PRIVATE_KEY: ${{secrets.EC2_SSH_KEY}}
+        REMOTE_HOST: ${{secrets.HOST_DNS}}
+        REMOTE_USER: ${{secrets.USERNAME}}
 
     - name: Restart PM2 application
       uses: appleboy/ssh-action@master
       with:
-        host: ${{ secrets.REMOTE_HOST }}
-        username: ${{ secrets.REMOTE_USER }}
-        key: ${{ secrets.SSH_PRIVATE_KEY }}
         script: |
           cd /var/www/system-api
           pm2 reload all  # This command restarts your application
+      env:
+        SSH_PRIVATE_KEY: ${{secrets.EC2_SSH_KEY}}
+        REMOTE_HOST: ${{secrets.HOST_DNS}}
+        REMOTE_USER: ${{secrets.USERNAME}}
