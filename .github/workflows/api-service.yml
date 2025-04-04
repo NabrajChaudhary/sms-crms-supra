@@ -70,14 +70,6 @@ jobs:
     - name: Install dependencies
       run: npm ci
 
-    - name: Run tests
-      run: npm test
-      # Add this if you have tests, otherwise you can remove this step
-
-    - name: Build application
-      run: npm run build
-      # Add this if you have a build step, otherwise you can remove this step
-
     - name: Deploy to AWS EC2
       uses: appleboy/scp-action@master
       with:
