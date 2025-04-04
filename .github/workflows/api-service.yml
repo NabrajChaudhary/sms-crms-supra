@@ -1,52 +1,4 @@
-# name: API Service CI/CD on Amazon Linux
-
-# on:
-#   push:
-#     branches: 
-#       - main
-
-# jobs:
-#   deploy:
-#     runs-on: ubuntu-latest
-
-#     steps:
-#     - name: Checkout repository
-#       uses: actions/checkout@v2
-
-#     - name: Install dependencies
-#       run: npm install
-
-#     - name: Print env variables (for debug)
-#       run: |
-#         echo "REMOTE_HOST: $REMOTE_HOST"
-#         echo "REMOTE_USER: $REMOTE_USER"
-#       env:
-#         REMOTE_HOST: ${{ secrets.HOST_DNS }}
-#         REMOTE_USER: ${{ secrets.USERNAME }}
-
-#     - name: Deploy to AWS EC2
-#       uses: appleboy/scp-action@master
-#       with:
-#         source: "./"
-#         target: "/var/www/sms-crms-supra"
-#       env:
-#         SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}
-#         REMOTE_HOST: ${{ secrets.HOST_DNS }}
-#         REMOTE_USER: ${{ secrets.USERNAME }}
-
-#     - name: Restart PM2 application
-#       uses: appleboy/ssh-action@master
-#       with:
-#         script: |
-#           cd /var/www/sms-crms-supra
-#           pm2 reload all  # This command restarts your application
-#       env:
-#         SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}
-#         REMOTE_HOST: ${{ secrets.HOST_DNS }}
-#         REMOTE_USER: ${{ secrets.USERNAME }}
-
-
-name: API Service CI/CD
+name: API Service CI/CD on Amazon Linux
 
 on:
   push:
@@ -54,21 +6,23 @@ on:
       - main
 
 jobs:
-  build-and-deploy:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v4
-
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
-        cache: 'npm'
+      uses: actions/checkout@v2
 
     - name: Install dependencies
-      run: npm ci
+      run: npm install
+
+    - name: Print env variables (for debug)
+      run: |
+        echo "REMOTE_HOST: $REMOTE_HOST"
+        echo "REMOTE_USER: $REMOTE_USER"
+      env:
+        REMOTE_HOST: ${{ secrets.HOST_DNS }}
+        REMOTE_USER: ${{ secrets.USERNAME }}
 
     - name: Deploy to AWS EC2
       uses: appleboy/scp-action@master
@@ -78,23 +32,18 @@ jobs:
         key: ${{ secrets.EC2_SSH_KEY }}
         source: "./"
         target: "/var/www/sms-crms-supra"
-        rm: false
-        # Optional: exclude node_modules and other unnecessary files
-        exclude: |
-          node_modules/
-          .git/
-          .github/
-          .gitignore
-          README.md
+        
 
-    - name: Restart application
+    - name: Restart PM2 application
       uses: appleboy/ssh-action@master
       with:
         host: ${{ secrets.HOST_DNS }}
         username: ${{ secrets.USERNAME }}
         key: ${{ secrets.EC2_SSH_KEY }}
+        source: "./"
+        target: "/var/www/sms-crms-supra"
         script: |
           cd /var/www/sms-crms-supra
-          npm ci --production
-          # Restart specific application instead of all
-          pm2 restart sms-crms-supra || pm2 start npm --name "sms-crms-supra" -- start
+          pm2 reload all  # This command restarts your application
+
+
