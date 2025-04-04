@@ -20,7 +20,7 @@ jobs:
       uses: appleboy/scp-action@master
       with:
         source: "./"
-        target: "/var/www/system-api"
+        target: "/var/www/sms-crms-supra"
       env:
         SSH_PRIVATE_KEY: ${{secrets.EC2_SSH_KEY}}
         REMOTE_HOST: ${{secrets.HOST_DNS}}
@@ -30,7 +30,7 @@ jobs:
       uses: appleboy/ssh-action@master
       with:
         script: |
-          cd /var/www/system-api
+          cd /var/www/sms-crms-supra
           pm2 reload all  # This command restarts your application
       env:
         SSH_PRIVATE_KEY: ${{secrets.EC2_SSH_KEY}}
