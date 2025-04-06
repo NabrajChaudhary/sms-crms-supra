@@ -35,7 +35,6 @@ const createStudent = (req, res, next) => __awaiter(void 0, void 0, void 0, func
             const upload = yield (0, cloudinary_1.default)(imagePath);
             if (!first_name ||
                 !last_name ||
-                !email ||
                 !course ||
                 !guardain_name ||
                 !date_of_enroll ||
@@ -49,7 +48,6 @@ const createStudent = (req, res, next) => __awaiter(void 0, void 0, void 0, func
                 return;
             }
             const student = yield students_models_1.StudentSchema.findOne({
-                email: req.body.email,
                 contact_number: req.body.contact_number,
             });
             if (student) {

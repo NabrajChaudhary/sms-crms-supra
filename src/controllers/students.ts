@@ -50,7 +50,6 @@ export const createStudent = async (
       if (
         !first_name ||
         !last_name ||
-        !email ||
         !course ||
         !guardain_name ||
         !date_of_enroll ||
@@ -66,7 +65,6 @@ export const createStudent = async (
       }
 
       const student = await StudentSchema.findOne({
-        email: req.body.email,
         contact_number: req.body.contact_number,
       });
 

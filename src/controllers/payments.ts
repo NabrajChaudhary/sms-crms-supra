@@ -115,3 +115,32 @@ export const getAllPayments = async (
     });
   }
 };
+
+export const deletePayment = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const { id } = req.params;
+
+  try {
+    const payment = await PaymentSchema.findById(id);
+
+    if (!payment) {
+      res.status(400).json({ error: "Payment not found" });
+      return;
+    }
+
+    const deletePayment = await PaymentSchema.deleteOne({ _id: id });
+
+    if (deletePayment.deletedCount === 0) {
+      res.status(500).json({ error: "Failed to delete payment" });
+      return;
+    }
+
+    res.status(200).json({ message: "Payment has been deleted" });
+  } catch (error) {
+    res.status(500).json({
+      error: "An error occured while deleting payment",
+    });
+  }
+};

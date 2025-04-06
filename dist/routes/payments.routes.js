@@ -11,3 +11,4 @@ exports.PaymentRoute = express_1.default.Router();
 exports.PaymentRoute.post("/:id/add-payment", middleware_1.auth, payments_1.addPayment);
 exports.PaymentRoute.get("/all", middleware_1.auth, payments_1.getAllPayments);
 exports.PaymentRoute.get("/:id/all", middleware_1.auth, payments_1.getPaymentsByStudentId);
+exports.PaymentRoute.delete("/:id/delete", middleware_1.isSuperAdmin, payments_1.deletePayment);

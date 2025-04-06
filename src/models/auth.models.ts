@@ -29,7 +29,7 @@ const AuthSchemaModel = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ["admin", "user"],
+    enum: ["admin", "user", "super-admin"],
     default: "admin",
     required: true,
   },
