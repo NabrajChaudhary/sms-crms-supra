@@ -1,6 +1,8 @@
 /node_modules
-
 /.github
-.env
+
 yarn.lock
-package-lock-json
+
+.env
+
+package-lock.json

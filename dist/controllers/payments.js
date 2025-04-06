@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getAllPayments = exports.getPaymentsByStudentId = exports.addPayment = void 0;
+exports.deletePayment = exports.getAllPayments = exports.getPaymentsByStudentId = exports.addPayment = void 0;
 const payments_model_1 = require("../models/payments.model");
 const revalidate_1 = require("../utils/revalidate");
 const addPayment = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -107,3 +107,25 @@ const getAllPayments = (req, res) => __awaiter(void 0, void 0, void 0, function*
     }
 });
 exports.getAllPayments = getAllPayments;
+const deletePayment = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { id } = req.params;
+    try {
+        const payment = yield payments_model_1.PaymentSchema.findById(id);
+        if (!payment) {
+            res.status(400).json({ error: "Payment not found" });
+            return;
+        }
+        const deletePayment = yield payments_model_1.PaymentSchema.deleteOne({ _id: id });
+        if (deletePayment.deletedCount === 0) {
+            res.status(500).json({ error: "Failed to delete payment" });
+            return;
+        }
+        res.status(200).json({ message: "Payment has been deleted" });
+    }
+    catch (error) {
+        res.status(500).json({
+            error: "An error occured while deleting payment",
+        });
+    }
+});
+exports.deletePayment = deletePayment;
