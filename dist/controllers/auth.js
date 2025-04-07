@@ -190,7 +190,6 @@ const resetUserPassword = (req, res) => __awaiter(void 0, void 0, void 0, functi
     console.log("🚀 ~ id:", id);
     try {
         const user = yield auth_models_1.AuthSchema.findById(id);
-        console.log("🚀 ~ resetUser ~ user:", user);
         console.log((0, coreFunctions_1.generatePassword)());
         if (!user) {
             res.status(404).json({ message: "This email has no user!" });
