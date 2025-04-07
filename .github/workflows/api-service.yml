@@ -30,7 +30,7 @@ jobs:
         source: "./"
         target: "/var/www/sms-crms-supra"
       env:
-        SSH_PRIVATE_KEY: ${{ variables.SSH_PRIVATE_KEY }}
+        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         REMOTE_HOST: ${{ secrets.HOST_DNS }}
         REMOTE_USER: ${{ secrets.USERNAME }}
 
@@ -41,6 +41,6 @@ jobs:
           cd /var/www/sms-crms-supra
           pm2 reload all  # This command restarts your application
       env:
-        SSH_PRIVATE_KEY: ${{ variables.SSH_PRIVATE_KEY }}
+        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         REMOTE_HOST: ${{ secrets.HOST_DNS }}
         REMOTE_USER: ${{ secrets.USERNAME }}
