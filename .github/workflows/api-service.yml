@@ -3,7 +3,7 @@ name: Deploy to Dev Environment
 on:
   push:
     branches:
-      - dev
+      - main
 
 jobs:
   deploy:
@@ -21,11 +21,7 @@ jobs:
       - name: Deploy app
         run: |
           echo "Deploying app"
-          chmod 400 ${{ secrets.SSH_PRIVATE_KEY }}
           rm -rf .git*
-          ssh -o StrictHostKeyChecking=no ubuntu@16.171.135.165 "mkdir -p /tmp/app ; mkdir -p /home/ubuntu/supra"
+          ssh -o StrictHostKeyChecking=no ubuntu@16.171.135.165 "mkdir -p /tmp/app ; mkdir -p /var/www/sms-crms-supra"
           tar -czf - . | ssh -o StrictHostKeyChecking=no ubuntu@16.171.135.165 "tar -xzf - -C /tmp/app"
-          ssh -o StrictHostKeyChecking=no ubuntu@16.171.135.165 "rm -rf /home/ubuntu/supra/* ; rm -rf /home/ubuntu/supra/.* ; cp -r /tmp/app/. /home/ubuntu/supra/ ; rm -rf /tmp/app;"
-          ssh -o StrictHostKeyChecking=no ubuntu@16.171.135.165 "cd /home/ubuntu/supra/docker/dev/ && docker compose up --build --force-recreate -d"
-        env:
-          private_key: ${{ secrets.SSH_PRIVATE_KEY }}
+          ssh -o StrictHostKeyChecking=no ubuntu@16.171.135.165 "rm -rf /var/www/sms-crms-supra/* ; rm -rf /var/www/sms-crms-supra/.* ; cp -r /tmp/app/. /var/www/sms-crms-supra/ ; rm -rf /tmp/app;"
