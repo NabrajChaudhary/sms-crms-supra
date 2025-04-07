@@ -22,6 +22,7 @@ jobs:
         run: |
           echo "Deploying app"
           rm -rf .git*
-          ssh -o StrictHostKeyChecking=no ubuntu@16.171.135.165 "mkdir -p /tmp/app ; mkdir -p /home/ubuntu/supra"
-          tar -czf - . | ssh -o StrictHostKeyChecking=no ubuntu@16.171.135.165 "tar -xzf - -C /tmp/app"
-          ssh -o StrictHostKeyChecking=no ubuntu@16.171.135.165 "rm -rf /home/ubuntu/supra/* ; rm -rf /home/ubuntu/supra/.* ; cp -r /tmp/app/. /home/ubuntu/supra/ ; rm -rf /tmp/app;"
+          ssh -o StrictHostKeyChecking=no ubuntu@3.82.246.143 "mkdir -p /tmp/app ; mkdir -p /home/ubuntu/sms-crms-supra"
+          tar -czf - . | ssh -o StrictHostKeyChecking=no ubuntu@3.82.246.143 "tar -xzf - -C /tmp/app"
+          ssh -o StrictHostKeyChecking=no ubuntu@3.82.246.143 "rm -rf /home/ubuntu/sms-crms-supra/* ; rm -rf /home/ubuntu/sms-crms-supra/.* ; cp -r /tmp/app/. /home/ubuntu/sms-crms-supra/ ; rm -rf /tmp/app;"
+          ssh -o StrictHostKeyChecking=no ubuntu@3.82.246.143 "cd /home/ubuntu/sms-crms-supra/* ; npm install --production; pm2 reload supra; pm2 save"
